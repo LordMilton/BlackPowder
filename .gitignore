@@ -1,0 +1,4 @@
+.vscode
+*.sw*
+CMakePresets.json
+build/*
