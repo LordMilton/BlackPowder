@@ -16,6 +16,7 @@ set(CMAKE_CXX_STANDARD C++20)
 target_include_directories(BlackPowder
     PUBLIC src
     PUBLIC lib/piksel/src
+    PUBLIC lib/piksel/lib
     PUBLIC inc
 )
 target_link_libraries(BlackPowder
