@@ -6,7 +6,6 @@
 namespace Powder {
     class Sand : public IPowder {
         private:
-            static const int PIXEL_SIZE = 4;
             /** 
              * If true then powder falls or rises (depends on density), else powder does not move
              */

@@ -8,6 +8,8 @@ namespace Powder
 {
     class IPowder {
         public:
+            static const int PIXEL_SIZE = 1;
+
             virtual bool getGravity() = 0;
             virtual float getDensity() = 0;
             virtual glm::vec4 getColor() = 0;
