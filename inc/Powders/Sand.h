@@ -1,6 +1,7 @@
 #ifndef SAND_H
 #define SAND_H
 
+#include <functional>
 #include "IPowder.h"
 
 namespace Powder {
@@ -39,6 +40,7 @@ namespace Powder {
             float getDensity();
             glm::vec4 getColor();
             int* getPosition();
+            int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun);
             void draw(piksel::Graphics& g);
 
     };

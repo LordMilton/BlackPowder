@@ -1,3 +1,4 @@
+#include <functional>
 #include "Sand.h"
 
 Powder::Sand::Sand(int xPos, int yPos) :
@@ -25,6 +26,14 @@ glm::vec4 Powder::Sand::getColor(){
 int* Powder::Sand::getPosition(){
     int* position = new int[2] {x,y};
     return position;
+}
+
+int* Powder::Sand::advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun){
+    int* newPos = advanceFun(x, y, gravity, density);
+    x = newPos[0];
+    y = newPos[1];
+    delete(newPos);
+    return getPosition();
 }
 
 void Powder::Sand::draw(piksel::Graphics& g){

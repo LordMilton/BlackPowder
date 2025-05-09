@@ -2,17 +2,21 @@
 #define APP_HPP
 
 #include "piksel/baseapp.hpp"
+#include "GameMaster.h"
 #include "IPowder.h"
 
 class App : public piksel::BaseApp {
     private:
-        std::vector<Powder::IPowder*>* powders;
+        GameMaster* gm;
 
     public:
-        App(std::string title, bool fullscreen) : piksel::BaseApp(title, fullscreen) {}
-        App(int width, int height, std::string title) : piksel::BaseApp(width, height, title) {}
+        App();
+        App(std::string title, bool fullscreen);
+        App(int width, int height, std::string title);
+        ~App();
+        
+        void initialize();
         void setup();
-        void setInitialPowders();
         void draw(piksel::Graphics& g);
 };
 #endif /* APP_HPP */

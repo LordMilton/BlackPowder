@@ -1,6 +1,7 @@
 #ifndef IPOWDER_H
 #define IPOWDER_H
 
+#include <functional>
 #include "type_vec4.hpp"
 #include "piksel/graphics.hpp"
 
@@ -22,6 +23,14 @@ namespace Powder
              * Draw the powder as a pixel object
              */
             virtual void draw(piksel::Graphics& g) = 0;
+
+            /**
+             * Advance the powder by one frame.
+             * "Advance" currently just means movement, it may indicate more change in the future
+             * 
+             * @return coordinates after advancement
+             */
+            virtual int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun) = 0;
         
     };
 }

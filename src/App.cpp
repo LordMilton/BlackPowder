@@ -1,8 +1,28 @@
 ﻿#include <cstdlib>
 #include "App.h"
+#include "GameMaster.h"
 #include "IPowder.h"
 #include "Sand.h"
 
+App::App() : piksel::BaseApp() {
+    initialize();
+}
+
+App::App(std::string title, bool fullscreen) : piksel::BaseApp(title, fullscreen) {
+    initialize();
+}
+
+App::App(int width, int height, std::string title) : piksel::BaseApp(width, height, title) {
+    initialize();
+}
+
+App::~App() {
+    delete(this->gm);
+}
+
+void App::initialize() {
+    this->gm = new GameMaster();
+}
 
 void App::setup() {
     // load fonts and images here
@@ -10,21 +30,13 @@ void App::setup() {
 
 void App::draw(piksel::Graphics& g) {
     g.background(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-    for(std::vector<Powder::IPowder*>::iterator iter = powders->begin(); iter != powders->end(); iter++) {
-        (*iter)->draw(g);
-    }
-}
-
-void App::setInitialPowders() {
-    powders = new std::vector<Powder::IPowder*>();
-    for(int i = 0; i < 100; i++){
-        powders->push_back(new Powder::Sand(rand()%1920, rand()%1080));
-    }
+    this->gm->run(g);
 }
 
 int main() {
-	App app(1920, 1080, "Black Powder");
-    app.setInitialPowders();
+	App* app = new App(1920, 1080, "Black Powder");
     //App app("Black Powder", false);
-	app.start();
+	app->start();
+    
+    delete(app);
 }
