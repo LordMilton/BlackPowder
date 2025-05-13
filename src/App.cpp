@@ -34,7 +34,7 @@ void App::draw(piksel::Graphics& g) {
 }
 
 int main() {
-	App* app = new App(1920, 1080, "Black Powder");
+	App* app = new App(1280, 720, "Black Powder");
     //App app("Black Powder", false);
 	app->start();
     

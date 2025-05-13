@@ -6,7 +6,7 @@ int* advancePowderFrame(int x, int y, bool gravity, float density) {
     if(gravity) {
         int rng = rand()%100;
         int yMove = density >= 0 ? 1 : -1;
-        if(rng > density) {
+        if(rng < density) {
             position[1] = y + yMove;
         }
         else {
@@ -19,8 +19,10 @@ int* advancePowderFrame(int x, int y, bool gravity, float density) {
 
 GameMaster::GameMaster() {
     powders = new std::vector<Powder::IPowder*>();
+    powderLocs = new std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>();
     for(int i = 0; i < 10000; i++) {
-        powders->push_back(new Powder::Sand(rand()%1920, rand()%1080));
+        bool success = addPowder(new Powder::Sand(rand()%1280, rand()%720));
+        i = success ? i : i-1;
     }
 }
 
@@ -33,4 +35,21 @@ void GameMaster::run(piksel::Graphics& g) {
         (*iter)->advanceOneFrame(advancePowderFrame);
         (*iter)->draw(g);
     }
+}
+
+bool GameMaster::addPowder(Powder::IPowder* toAdd) {
+    bool safeToAdd = addToLocations(toAdd);
+    if(!safeToAdd) {
+        printf("WARNING: Tried to add powder where there was already one");
+    } else {
+        powders->push_back(toAdd);
+    }
+    return safeToAdd;
+}
+
+bool GameMaster::addToLocations(Powder::IPowder* toAdd) {
+    int* pos = toAdd->getPosition();
+    
+    powderLocs->emplace(std::make_pair(pos[0], new std::unordered_map<int, Powder::IPowder*>()));
+    return(std::get<bool>(powderLocs->at(pos[0])->emplace(pos[1], toAdd)));
 }
