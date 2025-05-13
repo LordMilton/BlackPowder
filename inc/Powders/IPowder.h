@@ -30,7 +30,7 @@ namespace Powder
              * 
              * @return coordinates after advancement
              */
-            virtual int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun) = 0;
+            virtual int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>* powderLocations) = 0;
         
     };
 }

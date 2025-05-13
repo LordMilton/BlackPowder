@@ -40,7 +40,7 @@ namespace Powder {
             float getDensity();
             glm::vec4 getColor();
             int* getPosition();
-            int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun);
+            int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>* powderLocations);
             void draw(piksel::Graphics& g);
 
     };

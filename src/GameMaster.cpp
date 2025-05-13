@@ -6,11 +6,11 @@ int* advancePowderFrame(int x, int y, bool gravity, float density) {
     if(gravity) {
         int rng = rand()%100;
         int yMove = density >= 0 ? 1 : -1;
-        if(rng < density) {
+        if(rng < density*100) {
             position[1] = y + yMove;
         }
         else {
-            position[0] = x + ((rand() % 2) - 1);
+            position[0] = x + ((rand() % 3) - 1);
         }
     }
 
@@ -32,8 +32,13 @@ GameMaster::~GameMaster() {
 
 void GameMaster::run(piksel::Graphics& g) {
     for(std::vector<Powder::IPowder*>::iterator iter = powders->begin(); iter != powders->end(); iter++) {
-        (*iter)->advanceOneFrame(advancePowderFrame);
+        int* curPos = (*iter)->getPosition();
+        powderLocs->at(curPos[0])->erase(curPos[1]);
+
+        (*iter)->advanceOneFrame(advancePowderFrame, powderLocs);
         (*iter)->draw(g);
+
+        addToLocations((*iter));
     }
 }
 
