@@ -4,15 +4,19 @@
 #include <cstdlib>
 #include "piksel/baseapp.hpp"
 #include "IPowder.h"
+#include "Storage.h"
 
 class GameMaster {
     private:
-        std::vector<Powder::IPowder*>* powders;
+        Storage* powderStorage;
 
     public:
         GameMaster();
         ~GameMaster();
 
+        /**
+         * Runs the simulation
+         */
         void run(piksel::Graphics& g);
 };
 

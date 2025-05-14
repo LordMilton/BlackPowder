@@ -6,11 +6,11 @@ int* advancePowderFrame(int x, int y, bool gravity, float density) {
     if(gravity) {
         int rng = rand()%100;
         int yMove = density >= 0 ? 1 : -1;
-        if(rng > density) {
+        if(rng < density*100) {
             position[1] = y + yMove;
         }
         else {
-            position[0] = x + ((rand() % 2) - 1);
+            position[0] = x + ((rand() % 3) - 1);
         }
     }
 
@@ -18,19 +18,30 @@ int* advancePowderFrame(int x, int y, bool gravity, float density) {
 }
 
 GameMaster::GameMaster() {
-    powders = new std::vector<Powder::IPowder*>();
+    powderStorage = new Storage();
     for(int i = 0; i < 10000; i++) {
-        powders->push_back(new Powder::Sand(rand()%1920, rand()%1080));
+        bool success = powderStorage->addPowder(new Powder::Sand(rand()%1280, rand()%720));
+        i = success ? i : i-1;
     }
 }
 
 GameMaster::~GameMaster() {
-    delete(powders);
+    delete(powderStorage);
 }
 
 void GameMaster::run(piksel::Graphics& g) {
-    for(std::vector<Powder::IPowder*>::iterator iter = powders->begin(); iter != powders->end(); iter++) {
-        (*iter)->advanceOneFrame(advancePowderFrame);
+    std::pair<std::vector<Powder::IPowder*>::iterator, std::vector<Powder::IPowder*>::iterator> powderIterators = powderStorage->getPowdersIterators();
+    std::vector<Powder::IPowder*>::iterator beginIter = powderIterators.first;
+    std::vector<Powder::IPowder*>::iterator endIter = powderIterators.second;
+    for(std::vector<Powder::IPowder*>::iterator iter = beginIter; iter != endIter; iter++) {
+        int* curPos = (*iter)->getPosition();
+        powderStorage->removeFromLocations(*iter);
+
+        (*iter)->advanceOneFrame(advancePowderFrame, powderStorage);
+
+        powderStorage->addToLocations(*iter);
+    }
+    for(std::vector<Powder::IPowder*>::iterator iter = beginIter; iter != endIter; iter++) {
         (*iter)->draw(g);
     }
 }

@@ -1,12 +1,14 @@
 #include <functional>
+#include <stdexcept>
 #include "Sand.h"
+#include "Storage.h"
 
 Powder::Sand::Sand(int xPos, int yPos) :
         x(xPos),
         y(yPos),
         gravity(true),
         density(.75f),
-        color(glm::vec4(.5f,.5f,.5f,1.0f)) {
+        color(glm::vec4(1.0f,.984f,0.0f,1.0f)) {
 }
 
 Powder::Sand::~Sand() {}
@@ -28,10 +30,17 @@ int* Powder::Sand::getPosition(){
     return position;
 }
 
-int* Powder::Sand::advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun){
+int* Powder::Sand::advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage){
     int* newPos = advanceFun(x, y, gravity, density);
-    x = newPos[0];
-    y = newPos[1];
+    if(!(newPos[0] > 1280 || newPos[1] > 720 || newPos[0] < 0)) {
+        try {
+            Powder::IPowder* overlap = powderStorage->getPowderAtLocation(newPos[0], newPos[1]);
+        } catch (std::out_of_range e) {
+            // Exception from trying to find powder at newPos, meaning the space is empty
+            x = newPos[0];
+            y = newPos[1];
+        }
+    }
     delete(newPos);
     return getPosition();
 }
