@@ -18,12 +18,16 @@ class Storage {
         Storage();
         ~Storage();
         
+        std::pair<std::vector<Powder::IPowder*>::iterator, std::vector<Powder::IPowder*>::iterator> getPowdersIterators();
+
         /**
          * Add a powder to the simulation
          * 
          * @return True if powder successfully added, else false
          */
         bool addPowder(Powder::IPowder* toAdd);
+
+        Powder::IPowder* removePowders(std::vector<Powder::IPowder*>* toRemove);
 
         /**
          * Add a powder to the locations map, adding new indices to the map as needed
@@ -38,5 +42,8 @@ class Storage {
          * @return A pointer to the removed Powder
          */
         Powder::IPowder* removeFromLocations(Powder::IPowder* toRemove);
+
+        Powder::IPowder* getPowderAtLocation(int xPos, int yPos);
 };
-#endif /* APP_HPP */
+
+#endif /* STORAGE_H */

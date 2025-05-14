@@ -3,6 +3,7 @@
 
 #include <functional>
 #include "IPowder.h"
+#include "Storage.h"
 
 namespace Powder {
     class Sand : public IPowder {
@@ -40,7 +41,7 @@ namespace Powder {
             float getDensity();
             glm::vec4 getColor();
             int* getPosition();
-            int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>* powderLocations);
+            int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage);
             void draw(piksel::Graphics& g);
 
     };

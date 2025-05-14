@@ -5,6 +5,8 @@
 #include "type_vec4.hpp"
 #include "piksel/graphics.hpp"
 
+class Storage; //Forward declaring to break cycle IPowder <-> Storage
+
 namespace Powder
 {
     class IPowder {
@@ -30,7 +32,7 @@ namespace Powder
              * 
              * @return coordinates after advancement
              */
-            virtual int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>* powderLocations) = 0;
+            virtual int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage) = 0;
         
     };
 }

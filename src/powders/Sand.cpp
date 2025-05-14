@@ -1,6 +1,7 @@
 #include <functional>
 #include <stdexcept>
 #include "Sand.h"
+#include "Storage.h"
 
 Powder::Sand::Sand(int xPos, int yPos) :
         x(xPos),
@@ -29,11 +30,11 @@ int* Powder::Sand::getPosition(){
     return position;
 }
 
-int* Powder::Sand::advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>* powderLocations){
+int* Powder::Sand::advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage){
     int* newPos = advanceFun(x, y, gravity, density);
-    if(!(newPos[0] > 1280 || newPos[1] > 720)) {
+    if(!(newPos[0] > 1280 || newPos[1] > 720 || newPos[0] < 0)) {
         try {
-            Powder::IPowder* overlap = powderLocations->at(newPos[0])->at(newPos[1]);
+            Powder::IPowder* overlap = powderStorage->getPowderAtLocation(newPos[0], newPos[1]);
         } catch (std::out_of_range e) {
             // Exception from trying to find powder at newPos, meaning the space is empty
             x = newPos[0];

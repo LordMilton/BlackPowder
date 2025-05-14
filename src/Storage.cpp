@@ -11,6 +11,10 @@ Storage::~Storage() {
     delete powderLocs;
 }
 
+std::pair<std::vector<Powder::IPowder*>::iterator, std::vector<Powder::IPowder*>::iterator> Storage::getPowdersIterators() {
+    return std::make_pair(powders->begin(), powders->end());
+}
+
 bool Storage::addPowder(Powder::IPowder* toAdd) {
     bool safeToAdd = addToLocations(toAdd);
     if(!safeToAdd) {
@@ -19,6 +23,10 @@ bool Storage::addPowder(Powder::IPowder* toAdd) {
         powders->push_back(toAdd);
     }
     return safeToAdd;
+}
+
+Powder::IPowder* Storage::removePowders(std::vector<Powder::IPowder*>* toRemove) {
+    
 }
 
 bool Storage::addToLocations(Powder::IPowder* toAdd) {
@@ -32,4 +40,8 @@ Powder::IPowder* Storage::removeFromLocations(Powder::IPowder* toRemove) {
     int* curPos = toRemove->getPosition();
     powderLocs->at(curPos[0])->erase(curPos[1]);
     return(toRemove);
+}
+
+Powder::IPowder* Storage::getPowderAtLocation(int xPos, int yPos) {
+    return powderLocs->at(xPos)->at(yPos);
 }
