@@ -1,21 +1,18 @@
 #include "Storage.h"
 
 Storage::Storage() {
-    powders = new std::vector<Powder::IPowder*>();
-    powderLocs = new std::unordered_map<int, std::unordered_map<int, Powder::IPowder*>*>();
+    powders = std::make_unique<std::vector<std::shared_ptr<Powder::IPowder>>>();
+    powderLocs = std::make_shared<std::unordered_map<int, std::shared_ptr<std::unordered_map<int, std::shared_ptr<Powder::IPowder>>>>>();
 }
 
 Storage::~Storage() {
-    delete powders;
-    powderLocs->clear();
-    delete powderLocs;
 }
 
-std::pair<std::vector<Powder::IPowder*>::iterator, std::vector<Powder::IPowder*>::iterator> Storage::getPowdersIterators() {
+std::pair<std::vector<std::shared_ptr<Powder::IPowder>>::iterator, std::vector<std::shared_ptr<Powder::IPowder>>::iterator> Storage::getPowdersIterators() {
     return std::make_pair(powders->begin(), powders->end());
 }
 
-bool Storage::addPowder(Powder::IPowder* toAdd) {
+bool Storage::addPowder(std::shared_ptr<Powder::IPowder> toAdd) {
     bool safeToAdd = addToLocations(toAdd);
     if(!safeToAdd) {
         printf("WARNING: Tried to add powder where there was already one\n");
@@ -25,23 +22,23 @@ bool Storage::addPowder(Powder::IPowder* toAdd) {
     return safeToAdd;
 }
 
-Powder::IPowder* Storage::removePowders(std::vector<Powder::IPowder*>* toRemove) {
+std::shared_ptr<Powder::IPowder> Storage::removePowders(std::shared_ptr<std::vector<std::shared_ptr<Powder::IPowder>>> toRemove) {
     
 }
 
-bool Storage::addToLocations(Powder::IPowder* toAdd) {
-    int* pos = toAdd->getPosition();
+bool Storage::addToLocations(std::shared_ptr<Powder::IPowder> toAdd) {
+    std::pair<int,int> pos = toAdd->getPosition();
     
-    powderLocs->emplace(std::make_pair(pos[0], new std::unordered_map<int, Powder::IPowder*>()));
-    return(std::get<bool>(powderLocs->at(pos[0])->emplace(pos[1], toAdd)));
+    powderLocs->emplace(std::make_pair(pos.first, std::make_shared<std::unordered_map<int, std::shared_ptr<Powder::IPowder>>>()));
+    return(std::get<bool>(powderLocs->at(pos.first)->emplace(pos.second, toAdd)));
 }
 
-Powder::IPowder* Storage::removeFromLocations(Powder::IPowder* toRemove) {
-    int* curPos = toRemove->getPosition();
-    powderLocs->at(curPos[0])->erase(curPos[1]);
+std::shared_ptr<Powder::IPowder> Storage::removeFromLocations(std::shared_ptr<Powder::IPowder> toRemove) {
+    std::pair<int,int> curPos = toRemove->getPosition();
+    powderLocs->at(curPos.first)->erase(curPos.second);
     return(toRemove);
 }
 
-Powder::IPowder* Storage::getPowderAtLocation(int xPos, int yPos) {
+std::shared_ptr<Powder::IPowder> Storage::getPowderAtLocation(int xPos, int yPos) {
     return powderLocs->at(xPos)->at(yPos);
 }

@@ -1,16 +1,18 @@
+#include <memory>
+
 #include "GameMaster.h"
 #include "Sand.h"
 
-int* advancePowderFrame(int x, int y, bool gravity, float density) {
-    int* position = new int[2] {x,y};
+std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density) {
+    std::pair<int,int> position = std::make_pair(x,y);
     if(gravity) {
         int rng = rand()%100;
         int yMove = density >= 0 ? 1 : -1;
         if(rng < density*100) {
-            position[1] = y + yMove;
+            position.second = y + yMove;
         }
         else {
-            position[0] = x + ((rand() % 3) - 1);
+            position.first = x + ((rand() % 3) - 1);
         }
     }
 
@@ -18,37 +20,34 @@ int* advancePowderFrame(int x, int y, bool gravity, float density) {
 }
 
 GameMaster::GameMaster() {
-    powderStorage = new Storage();
-    curMouseLocation = new int[2] {0,0};
+    powderStorage = std::make_shared<Storage>();
+    curMouseLocation = std::make_pair(0,0);
     lmbPressed = false;
     rmbPressed = false;
 
     for(int i = 0; i < 10000; i++) {
-        bool success = powderStorage->addPowder(new Powder::Sand(rand()%1280, rand()%720));
+        bool success = powderStorage->addPowder(std::make_shared<Powder::Sand>(rand()%1280, rand()%720));
         i = success ? i : i-1;
     }
 }
 
-GameMaster::~GameMaster() {
-    delete(powderStorage);
-    delete(curMouseLocation);
-}
+GameMaster::~GameMaster() {}
 
 void GameMaster::run(piksel::Graphics& g) {
     // Create new powders via user
     if(lmbPressed) {
-        Powder::Sand* toAdd = new Powder::Sand(curMouseLocation[0],curMouseLocation[1]);
+        std::shared_ptr<Powder::Sand> toAdd = std::make_shared<Powder::Sand>(curMouseLocation.first,curMouseLocation.second);
         powderStorage->addPowder(toAdd);
     }
     
     // Handle normal frame stuff
-    std::pair<std::vector<Powder::IPowder*>::iterator, std::vector<Powder::IPowder*>::iterator> powderIterators = powderStorage->getPowdersIterators();
-    std::vector<Powder::IPowder*>::iterator beginIter = powderIterators.first;
-    std::vector<Powder::IPowder*>::iterator endIter = powderIterators.second;
+    std::pair<std::vector<std::shared_ptr<Powder::IPowder>>::iterator, std::vector<std::shared_ptr<Powder::IPowder>>::iterator> powderIterators = powderStorage->getPowdersIterators();
+    std::vector<std::shared_ptr<Powder::IPowder>>::iterator beginIter = powderIterators.first;
+    std::vector<std::shared_ptr<Powder::IPowder>>::iterator endIter = powderIterators.second;
 
     // Do physics work
-    for(std::vector<Powder::IPowder*>::iterator iter = beginIter; iter != endIter; iter++) {
-        int* curPos = (*iter)->getPosition();
+    for(std::vector<std::shared_ptr<Powder::IPowder>>::iterator iter = beginIter; iter != endIter; iter++) {
+        std::pair<int,int> curPos = (*iter)->getPosition();
         powderStorage->removeFromLocations(*iter);
 
         (*iter)->advanceOneFrame(advancePowderFrame, powderStorage);
@@ -57,14 +56,13 @@ void GameMaster::run(piksel::Graphics& g) {
     }
     
     // Draw all the powders
-    for(std::vector<Powder::IPowder*>::iterator iter = beginIter; iter != endIter; iter++) {
+    for(std::vector<std::shared_ptr<Powder::IPowder>>::iterator iter = beginIter; iter != endIter; iter++) {
         (*iter)->draw(g);
     }
 }
 
 void GameMaster::mouseMoved(int x, int y) {
-    curMouseLocation[0] = x;
-    curMouseLocation[1] = y;
+    curMouseLocation = std::make_pair(x,y);
 }
 
 void GameMaster::mousePressed(int button) {

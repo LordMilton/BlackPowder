@@ -16,12 +16,10 @@ App::App(int width, int height, std::string title) : piksel::BaseApp(width, heig
     initialize();
 }
 
-App::~App() {
-    delete(this->gm);
-}
+App::~App() {}
 
 void App::initialize() {
-    this->gm = new GameMaster();
+    this->gm = std::make_unique<GameMaster>();
 }
 
 void App::setup() {
@@ -46,9 +44,7 @@ void App::mouseReleased(int button) {
 }
 
 int main() {
-	App* app = new App(1280, 720, "Black Powder");
+	std::unique_ptr<App> app = std::make_unique<App>(1280, 720, "Black Powder");
     //App app("Black Powder", false);
 	app->start();
-    
-    delete(app);
 }

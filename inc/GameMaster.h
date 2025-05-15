@@ -2,6 +2,8 @@
 #define GAMEMASTER_H
 
 #include <cstdlib>
+#include <memory>
+
 #include "piksel/baseapp.hpp"
 #include "IPowder.h"
 #include "Storage.h"
@@ -11,11 +13,11 @@ class GameMaster {
         /**
          * Stores all necessary data about powders currently in the simulation
          */
-        Storage* powderStorage;
+        std::shared_ptr<Storage> powderStorage;
         /**
          * The current location of the mouse cursor
          */
-        int* curMouseLocation;
+        std::pair<int,int> curMouseLocation; 
         /**
          * Whether the left mouse button is currently held down
          */

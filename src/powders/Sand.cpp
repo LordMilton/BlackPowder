@@ -1,5 +1,6 @@
 #include <functional>
 #include <stdexcept>
+
 #include "Sand.h"
 #include "Storage.h"
 
@@ -25,24 +26,22 @@ glm::vec4 Powder::Sand::getColor(){
     return color;
 }
 
-int* Powder::Sand::getPosition(){
-    int* position = new int[2] {x,y};
-    return position;
+std::pair<int,int> Powder::Sand::getPosition(){
+    return(std::make_pair(x,y));
 }
 
-int* Powder::Sand::advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage){
-    int* newPos = advanceFun(x, y, gravity, density);
-    if(!(newPos[0] > 1280 || newPos[1] > 720 || newPos[0] < 0)) {
+void Powder::Sand::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage){
+    std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
+    // Don't let powder exit the screen
+    if(!(newPos.first > 1280 || newPos.second > 720 || newPos.first < 1 || newPos.second < 1)) {
         try {
-            Powder::IPowder* overlap = powderStorage->getPowderAtLocation(newPos[0], newPos[1]);
+            std::shared_ptr<Powder::IPowder> overlap = powderStorage->getPowderAtLocation(newPos.first, newPos.second);
         } catch (std::out_of_range e) {
             // Exception from trying to find powder at newPos, meaning the space is empty
-            x = newPos[0];
-            y = newPos[1];
+            x = newPos.first;
+            y = newPos.second;
         }
     }
-    delete(newPos);
-    return getPosition();
 }
 
 void Powder::Sand::draw(piksel::Graphics& g){

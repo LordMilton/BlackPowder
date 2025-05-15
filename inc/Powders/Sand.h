@@ -40,8 +40,8 @@ namespace Powder {
             bool getGravity();
             float getDensity();
             glm::vec4 getColor();
-            int* getPosition();
-            int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage);
+            std::pair<int,int> getPosition();
+            void advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage);
             void draw(piksel::Graphics& g);
 
     };
