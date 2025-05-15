@@ -33,6 +33,18 @@ void App::draw(piksel::Graphics& g) {
     this->gm->run(g);
 }
 
+void App::mouseMoved(int x, int y) {
+    gm->mouseMoved(x,y);
+}
+
+void App::mousePressed(int button) {
+    gm->mousePressed(button);
+}
+
+void App::mouseReleased(int button) {
+    gm->mouseReleased(button);
+}
+
 int main() {
 	App* app = new App(1280, 720, "Black Powder");
     //App app("Black Powder", false);
