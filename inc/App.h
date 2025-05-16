@@ -1,13 +1,15 @@
 ﻿#ifndef APP_HPP
 #define APP_HPP
 
+#include <memory>
+
 #include "piksel/baseapp.hpp"
 #include "GameMaster.h"
 #include "IPowder.h"
 
 class App : public piksel::BaseApp {
     private:
-        GameMaster* gm;
+        std::unique_ptr<GameMaster> gm;
 
     public:
         App();

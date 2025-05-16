@@ -2,6 +2,8 @@
 #define IPOWDER_H
 
 #include <functional>
+#include <memory>
+
 #include "type_vec4.hpp"
 #include "piksel/graphics.hpp"
 
@@ -19,7 +21,7 @@ namespace Powder
             /**
              * Returns position as [x,y]
              */
-            virtual int* getPosition() = 0;
+            virtual std::pair<int,int> getPosition() = 0;
 
             /**
              * Draw the powder as a pixel object
@@ -32,7 +34,7 @@ namespace Powder
              * 
              * @return coordinates after advancement
              */
-            virtual int* advanceOneFrame(std::function<int*(int,int,bool,float)> advanceFun, Storage* powderStorage) = 0;
+            virtual void advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage) = 0;
         
     };
 }
