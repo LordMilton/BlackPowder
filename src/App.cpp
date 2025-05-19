@@ -1,7 +1,6 @@
 ﻿#include <cstdlib>
 #include "App.h"
 #include "GameMaster.h"
-#include "IPowder.h"
 #include "Sand.h"
 
 App::App() : piksel::BaseApp() {
@@ -44,7 +43,7 @@ void App::mouseReleased(int button) {
 }
 
 int main() {
-	std::unique_ptr<App> app = std::make_unique<App>(1280, 720, "Black Powder");
+	std::unique_ptr<App> app = std::make_unique<App>(800, 800, "Black Powder");
     //App app("Black Powder", false);
 	app->start();
 }

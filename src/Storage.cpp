@@ -1,44 +1,74 @@
 #include "Storage.h"
 
 Storage::Storage() {
-    powders = std::make_unique<std::vector<std::shared_ptr<Powder::IPowder>>>();
-    powderLocs = std::make_shared<std::unordered_map<int, std::shared_ptr<std::unordered_map<int, std::shared_ptr<Powder::IPowder>>>>>();
+    midFrame = false;
+    powders = std::make_unique<int_powder_map>();
+    futurePowders = std::make_unique<int_powder_map>();
 }
 
 Storage::~Storage() {
 }
 
-std::pair<std::vector<std::shared_ptr<Powder::IPowder>>::iterator, std::vector<std::shared_ptr<Powder::IPowder>>::iterator> Storage::getPowdersIterators() {
+void Storage::startFrameHandling() {
+    midFrame = true;
+}
+
+void Storage::endFrameHandling() {
+    midFrame = false;
+    powders = std::make_unique<int_powder_map>(*futurePowders);
+    futurePowders = std::make_unique<int_powder_map>();
+}
+
+std::pair<int_powder_map::iterator, int_powder_map::iterator> Storage::getPowdersIterators() {
     return std::make_pair(powders->begin(), powders->end());
 }
 
-bool Storage::addPowder(std::shared_ptr<Powder::IPowder> toAdd) {
-    bool safeToAdd = addToLocations(toAdd);
-    if(!safeToAdd) {
-        printf("WARNING: Tried to add powder where there was already one\n");
-    } else {
-        powders->push_back(toAdd);
+bool Storage::addPowder(powder_ptr toAdd) {
+    bool added = false;
+    if(midFrame) {
+        added = std::get<bool>(futurePowders->emplace(std::make_pair(hashPowder(toAdd), toAdd)));
     }
-    return safeToAdd;
+    else {
+        added = std::get<bool>(powders->emplace(std::make_pair(hashPowder(toAdd), toAdd)));
+    }
+
+    if(!added) {
+        printf("WARNING: Tried to add powder where there was already one\n");
+    }
+    return added;
 }
 
-std::shared_ptr<Powder::IPowder> Storage::removePowders(std::shared_ptr<std::vector<std::shared_ptr<Powder::IPowder>>> toRemove) {
+void Storage::removePowders(std::shared_ptr<std::vector<powder_ptr>> toRemove) {
+    if(midFrame) {
+        printf("WARNING: Can only remove powders before frame\n");
+        return;
+    }
     
+    for(std::vector<powder_ptr>::iterator iter = toRemove->begin(); iter != toRemove->end(); iter++) {
+        removePowder(*iter);
+    }
 }
 
-bool Storage::addToLocations(std::shared_ptr<Powder::IPowder> toAdd) {
-    std::pair<int,int> pos = toAdd->getPosition();
-    
-    powderLocs->emplace(std::make_pair(pos.first, std::make_shared<std::unordered_map<int, std::shared_ptr<Powder::IPowder>>>()));
-    return(std::get<bool>(powderLocs->at(pos.first)->emplace(pos.second, toAdd)));
+powder_ptr Storage::removePowder(powder_ptr toRemove) {
+    powders->erase(hashPowder(toRemove));
+    return toRemove;
 }
 
-std::shared_ptr<Powder::IPowder> Storage::removeFromLocations(std::shared_ptr<Powder::IPowder> toRemove) {
-    std::pair<int,int> curPos = toRemove->getPosition();
-    powderLocs->at(curPos.first)->erase(curPos.second);
-    return(toRemove);
+powder_ptr Storage::getPowderAtLocation(int xPos, int yPos) {
+    // IF there is no powder at the indicated location in the most recent frame OR
+    // that powder has already had its physics calculated for the next frame (i.e. it may no longer be in that location) THEN
+    // return the powder that will be there in the next frame if there is one
+    if(powders->count(hashPosition(xPos, yPos)) == 0 || powders->at(hashPosition(xPos, yPos))->getChanged()) {
+        return futurePowders->at(hashPosition(xPos, yPos));
+    }
+    return powders->at(hashPosition(xPos, yPos));
 }
 
-std::shared_ptr<Powder::IPowder> Storage::getPowderAtLocation(int xPos, int yPos) {
-    return powderLocs->at(xPos)->at(yPos);
+size_t Storage::hashPowder(powder_ptr powder) {
+    std::pair<int,int> coords = powder->getPosition();
+    return(hashPosition(coords.first, coords.second));
+}
+
+size_t Storage::hashPosition(int xPos, int yPos) {
+    return(xPos*MAX_X_POS + yPos);
 }
