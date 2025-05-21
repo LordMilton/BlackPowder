@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "piksel/baseapp.hpp"
-#include "IPowder.h"
+#include "Powder.h"
 #include "Storage.h"
 
 class GameMaster {

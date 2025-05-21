@@ -5,7 +5,6 @@
 
 #include "piksel/baseapp.hpp"
 #include "GameMaster.h"
-#include "IPowder.h"
 
 class App : public piksel::BaseApp {
     private:
