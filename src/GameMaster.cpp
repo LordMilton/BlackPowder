@@ -3,6 +3,7 @@
 
 #include "GameMaster.h"
 #include "Sand.h"
+#include "Water.h"
 
 std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density) {
     std::pair<int,int> position = std::make_pair(x,y);
@@ -27,7 +28,12 @@ GameMaster::GameMaster() {
     rmbPressed = false;
 
     for(int i = 0; i < 10000; i++) {
-        bool success = powderStorage->addPowder(std::make_shared<Powder::Sand>(rand()%800, rand()%800));
+        int typeRand = rand() % 2;
+        bool success = false;
+        if(typeRand == 0)
+            success = powderStorage->addPowder(std::make_shared<Powder::Sand>(rand()%800, rand()%800));
+        else if(typeRand == 1)
+            success = powderStorage->addPowder(std::make_shared<Powder::Water>(rand()%800, rand()%200+600));
         i = success ? i : i-1;
     }
 }
@@ -60,15 +66,11 @@ void GameMaster::run(piksel::Graphics& g) {
     // Do physics work
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
         powder_ptr curPowder = iter->second;
-        
-        std::pair<int,int> curPos = curPowder->getPosition();
-
-        powder_ptr newPowder = curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
-
-        powderStorage->addPowder(newPowder);
+        curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
     }
     
     // Draw all the powders
+    //printf("Drawing Powders\n");
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
         iter->second->draw(g);
     }

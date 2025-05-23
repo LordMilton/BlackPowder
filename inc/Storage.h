@@ -2,8 +2,14 @@
 #define STORAGE_H
 
 #include <memory>
+#include <stdio.h>
+#include <unordered_map>
+#include <vector>
 
-#include "Powder.h"
+// Forward declare to break cyclical includes Powder <-> Storage
+namespace Powder {
+    class Powder;
+}
 
 typedef std::shared_ptr<Powder::Powder> powder_ptr;
 typedef std::unordered_map<size_t, std::shared_ptr<Powder::Powder>> int_powder_map;
@@ -47,7 +53,6 @@ class Storage {
          */
         std::unique_ptr<int_powder_map> futurePowders;
         
-        powder_ptr removePowder(powder_ptr toRemove);
 
     public:
         Storage();
@@ -80,6 +85,8 @@ class Storage {
          * has been told it is in the middle of a frame (physics calculations/drawing/etc.)
          */
         void removePowders(std::shared_ptr<std::vector<powder_ptr>> toRemove);
+
+        powder_ptr removePowder(powder_ptr toRemove);
 
         /**
          * Retrieves the powder at the given location
