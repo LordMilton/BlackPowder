@@ -1,4 +1,5 @@
 #include "Storage.h"
+#include "Powder.h"
 
 Storage::Storage() {
     midFrame = false;
@@ -33,24 +34,24 @@ bool Storage::addPowder(powder_ptr toAdd) {
     }
 
     if(!added) {
-        printf("WARNING: Tried to add powder where there was already one\n");
+        printf("WARNING: Tried to add powder where there already was one\n");
     }
     return added;
 }
 
 void Storage::removePowders(std::shared_ptr<std::vector<powder_ptr>> toRemove) {
-    if(midFrame) {
-        printf("WARNING: Can only remove powders before frame\n");
-        return;
-    }
-    
     for(std::vector<powder_ptr>::iterator iter = toRemove->begin(); iter != toRemove->end(); iter++) {
         removePowder(*iter);
     }
 }
 
 powder_ptr Storage::removePowder(powder_ptr toRemove) {
-    powders->erase(hashPowder(toRemove));
+    if(midFrame) {
+        futurePowders->erase(hashPowder(toRemove));
+    }
+    else {
+        powders->erase(hashPowder(toRemove));
+    }
     return toRemove;
 }
 

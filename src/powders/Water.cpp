@@ -1,35 +1,34 @@
 #include <functional>
 #include <stdexcept>
 
-#include "Sand.h"
+#include "Water.h"
 #include "Storage.h"
 #include "Powder.h"
 
-Powder::Sand::Sand(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, true, .75f, glm::vec4(1.0f,.984f,0.0f,1.0f)) {
+Powder::Water::Water(int xPos, int yPos) : 
+        Powder::Powder(xPos, yPos, true, .25f, glm::vec4(0.102f, 0.102f, 0.969f, 1.0f)) {
 }
 
-Powder::Sand::~Sand() {}
+Powder::Water::~Water() {}
 
-powder_ptr Powder::Sand::copyPowder() {
+powder_ptr Powder::Water::copyPowder() {
     return(copyPowder(this->x, this->y));
 }
 
-powder_ptr Powder::Sand::copyPowder(int newXPos, int newYPos) {
-    return(std::make_shared<Sand>(newXPos, newYPos));
+powder_ptr Powder::Water::copyPowder(int newXPos, int newYPos) {
+    return(std::make_shared<Water>(newXPos, newYPos));
 }
 
 /*
-bool Powder::Sand::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage){    
+bool Powder::Water::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage){    
     bool advanced = false;
-    
     if(!changedThisFrame) {
         std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
         std::shared_ptr<Powder> displacedPowder = NULL;
         // Don't let powder exit the screen
         if(!(newPos.first > 800 || newPos.second > 800 || newPos.first < 1 || newPos.second < 1)) {
             try {
-                std::shared_ptr<Powder> overlap = powderStorage->getPowderAtLocation(newPos.first, newPos.second);
+                powder_ptr overlap = powderStorage->getPowderAtLocation(newPos.first, newPos.second);
                 if(this->density <= overlap->getDensity()) {
                     newPos = this->getPosition();
                 }
@@ -50,7 +49,7 @@ bool Powder::Sand::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool
         else {
             newPos = this->getPosition();
         }
-        std::shared_ptr<Powder> newPowder = std::make_shared<Sand>(newPos.first, newPos.second);
+        std::shared_ptr<Powder> newPowder = std::make_shared<Water>(newPos.first, newPos.second);
         powderStorage->addPowder(newPowder);
         setChanged();
         if(displacedPowder != NULL)

@@ -1,28 +1,13 @@
-#include <functional>
 #include <stdexcept>
+#include <functional>
+#include <memory>
 
-#include "Sand.h"
-#include "Storage.h"
+#include "type_vec4.hpp"
+#include "piksel/graphics.hpp"
 #include "Powder.h"
 
-Powder::Sand::Sand(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, true, .75f, glm::vec4(1.0f,.984f,0.0f,1.0f)) {
-}
-
-Powder::Sand::~Sand() {}
-
-powder_ptr Powder::Sand::copyPowder() {
-    return(copyPowder(this->x, this->y));
-}
-
-powder_ptr Powder::Sand::copyPowder(int newXPos, int newYPos) {
-    return(std::make_shared<Sand>(newXPos, newYPos));
-}
-
-/*
-bool Powder::Sand::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage){    
+bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage) {
     bool advanced = false;
-    
     if(!changedThisFrame) {
         std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
         std::shared_ptr<Powder> displacedPowder = NULL;
@@ -35,8 +20,7 @@ bool Powder::Sand::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool
                 }
                 else {
                     displacedPowder = overlap;
-                    if(overlap->getChanged())
-                        powderStorage->removePowder(overlap);
+                    powderStorage->removePowder(overlap);
                     overlap->shiftPowder(this->x, this->y);
                     x = newPos.first;
                     y = newPos.second;
@@ -50,14 +34,13 @@ bool Powder::Sand::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool
         else {
             newPos = this->getPosition();
         }
-        std::shared_ptr<Powder> newPowder = std::make_shared<Sand>(newPos.first, newPos.second);
+        std::shared_ptr<Powder> newPowder = this->copyPowder(newPos.first, newPos.second);
         powderStorage->addPowder(newPowder);
         setChanged();
         if(displacedPowder != NULL)
-            powderStorage->addPowder(displacedPowder);
+            powderStorage->addPowder(displacedPowder->copyPowder());
 
         advanced = true;
     }
     return(advanced);
 }
-*/
