@@ -1,16 +1,17 @@
 #ifndef POWDER_H
 #define POWDER_H
 
+#include <stdexcept>
 #include <functional>
 #include <memory>
 
 #include "type_vec4.hpp"
 #include "piksel/graphics.hpp"
-
-class Storage; //Forward declare to break cyclical includes Powder <-> Storage
+#include "Storage.h"
 
 namespace Powder
 {
+
     class Powder {
         protected:
             Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color) :
@@ -47,7 +48,7 @@ namespace Powder
             int y;
 
             /**
-             * 
+             * Whether this powder has moved this frame, whether by it's own physics or being displaced
              */
             bool changedThisFrame = false;
         
@@ -102,16 +103,29 @@ namespace Powder
                 return false;
             }
 
-            friend std::hash<Powder>;
-
             /**
              * Advance the powder by one frame.
-             * "Advance" currently just means movement, it may indicate more change in the future
+             * "Advance" currently just means basic physics movement, if the powder has already been shifted
+             * due to the physics of another powder, this will do nothing
              * 
-             * @return coordinates after advancement
+             * @return true if powder was advanced, false otherwise
              */
-            virtual std::shared_ptr<Powder> advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage) = 0;
-        
+            bool advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage);
+
+            /**
+             * Shift the powder to a new location.
+             * Lets other powders displace this one due to their own physics
+             */
+            void shiftPowder(int newXPos, int newYPos) {
+                //TODO Something about changing these coordinates feels wrong, not sure how to change it
+                this->x = newXPos;
+                this->y = newYPos;
+                this->setChanged();
+            }
+
+            virtual std::shared_ptr<Powder> copyPowder() = 0;
+
+            virtual std::shared_ptr<Powder> copyPowder(int newXPos, int newYPos) = 0;
     };
 }
 
