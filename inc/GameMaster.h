@@ -5,15 +5,28 @@
 #include <memory>
 
 #include "piksel/baseapp.hpp"
+#include "piksel/graphics.hpp"
+#include "Menu.h"
 #include "Powder.h"
 #include "Storage.h"
 
 class GameMaster {
     private:
+        std::unique_ptr<Menu> selectionMenu;
         /**
          * Stores all necessary data about powders currently in the simulation
          */
         std::shared_ptr<Storage> powderStorage;
+        /**
+         * Dimensions of the game window
+         */
+        int windowWidth;
+        int windowHeight;
+        /**
+         * Dimensions of the space where powders can exist
+         */
+        int powderSpaceWidth;
+        int powderSpaceHeight;
         /**
          * The current location of the mouse cursor
          */
@@ -32,8 +45,13 @@ class GameMaster {
          */
         void mouseButtonChanged(int button, bool pressed);
 
+        /**
+         * Draws the selection menu
+         */
+        std::pair<int,int> drawMenu();
+
     public:
-        GameMaster();
+        GameMaster(int windowHeight, int windowWidth);
         ~GameMaster();
 
         /**

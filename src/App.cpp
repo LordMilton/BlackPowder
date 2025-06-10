@@ -18,7 +18,7 @@ App::App(int width, int height, std::string title) : piksel::BaseApp(width, heig
 App::~App() {}
 
 void App::initialize() {
-    this->gm = std::make_unique<GameMaster>();
+    this->gm = std::make_unique<GameMaster>(width, height);
 }
 
 void App::setup() {
@@ -43,7 +43,10 @@ void App::mouseReleased(int button) {
 }
 
 int main() {
-	std::unique_ptr<App> app = std::make_unique<App>(800, 800, "Black Powder");
+    const int WINDOW_WIDTH = 800;
+    const int WINDOW_HEIGHT = 800;
+
+	std::unique_ptr<App> app = std::make_unique<App>(WINDOW_WIDTH, WINDOW_HEIGHT, "Black Powder");
     //App app("Black Powder", false);
 	app->start();
 }

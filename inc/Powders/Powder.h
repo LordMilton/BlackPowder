@@ -14,12 +14,13 @@ namespace Powder
 
     class Powder {
         protected:
-            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color) :
+            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name) :
                     x(xPos),
                     y(yPos),
                     gravity(gravity),
                     density(density),
                     color(color),
+                    name(name),
                     changedThisFrame(false) {}
 
             /** 
@@ -38,6 +39,12 @@ namespace Powder
              * Color of the powder
              */
             const glm::vec4 color;
+            /**
+             * Name of the powder
+             * 
+             * The name is the same for all instances of a powder, but needs to be accessible by things that don't know the powder type so shouldn't be static
+             */
+            const std::string name;
             /**
              * X coordinate
              */
@@ -79,6 +86,10 @@ namespace Powder
 
             bool getChanged() {
                 return(changedThisFrame);
+            }
+
+            std::string getName() {
+                return name;
             }
 
             /**
