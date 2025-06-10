@@ -21,11 +21,20 @@ std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density)
     return position;
 }
 
-GameMaster::GameMaster() {
+GameMaster::GameMaster(int windowWidth, int windowHeight) {
+    this->windowWidth = windowWidth;
+    this->windowHeight = windowHeight;
     powderStorage = std::make_shared<Storage>();
     curMouseLocation = std::make_pair(0,0);
     lmbPressed = false;
     rmbPressed = false;
+
+    std::shared_ptr<std::vector<powder_ptr>> menuPowders = std::shared_ptr<std::vector<powder_ptr>>(new std::vector<powder_ptr>());
+    menuPowders->push_back(std::shared_ptr<Powder::Sand>(new Powder::Sand(0,0)));
+    menuPowders->push_back(std::shared_ptr<Powder::Water>(new Powder::Water(0,0)));
+    selectionMenu = std::unique_ptr<Menu>(new Menu(this->windowWidth, this->windowHeight, menuPowders));
+    menuPowders.reset();
+    // TODO Provide bounds to powders depending on menu size
 
     for(int i = 0; i < 10000; i++) {
         int typeRand = rand() % 2;
@@ -41,6 +50,9 @@ GameMaster::GameMaster() {
 GameMaster::~GameMaster() {}
 
 void GameMaster::run(piksel::Graphics& g) {
+    // Draw powder selection menu
+    selectionMenu->draw(g);
+
     // Create new powders via user
     if(lmbPressed) {
         powder_ptr toAdd = std::make_shared<Powder::Sand>(curMouseLocation.first,curMouseLocation.second);
