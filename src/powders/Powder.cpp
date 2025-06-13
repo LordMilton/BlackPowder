@@ -12,7 +12,8 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
         std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
         std::shared_ptr<Powder> displacedPowder = NULL;
         // Don't let powder exit the screen
-        if(!(newPos.first > 800 || newPos.second > 800 || newPos.first < 1 || newPos.second < 1)) {
+        // At some point we'll draw walls around the edges when we don't want powders leaving the screen
+        if(!(newPos.first > 800 || newPos.second > 700 || newPos.first < 1 || newPos.second < 1)) {
             try {
                 std::shared_ptr<Powder> overlap = powderStorage->getPowderAtLocation(newPos.first, newPos.second);
                 if(this->density <= overlap->getDensity()) {

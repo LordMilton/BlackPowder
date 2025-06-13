@@ -6,7 +6,7 @@
 #include "Powder.h"
 
 Powder::Sand::Sand(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, true, .75f, glm::vec4(1.0f,.984f,0.0f,1.0f)) {
+        Powder::Powder(xPos, yPos, true, .75f, glm::vec4(1.0f,.984f,0.0f,1.0f), "Sand") {
 }
 
 Powder::Sand::~Sand() {}

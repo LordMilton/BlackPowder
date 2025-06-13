@@ -23,6 +23,11 @@ class GameMaster {
         int windowWidth;
         int windowHeight;
         /**
+         * Dimensions of the space where powders can exist
+         */
+        int powderSpaceWidth;
+        int powderSpaceHeight;
+        /**
          * The current location of the mouse cursor
          */
         std::pair<int,int> curMouseLocation; 

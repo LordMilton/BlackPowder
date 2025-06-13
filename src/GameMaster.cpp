@@ -34,15 +34,17 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) {
     menuPowders->push_back(std::shared_ptr<Powder::Water>(new Powder::Water(0,0)));
     selectionMenu = std::unique_ptr<Menu>(new Menu(this->windowWidth, this->windowHeight, menuPowders));
     menuPowders.reset();
-    // TODO Provide bounds to powders depending on menu size
+    
+    powderSpaceWidth = this->windowWidth;
+    powderSpaceHeight = this->windowHeight - selectionMenu->getMenuDimensions().second;
 
     for(int i = 0; i < 10000; i++) {
         int typeRand = rand() % 2;
         bool success = false;
         if(typeRand == 0)
-            success = powderStorage->addPowder(std::make_shared<Powder::Sand>(rand()%800, rand()%800));
+            success = powderStorage->addPowder(std::make_shared<Powder::Sand>(rand()%800, rand()%700));
         else if(typeRand == 1)
-            success = powderStorage->addPowder(std::make_shared<Powder::Water>(rand()%800, rand()%200+600));
+            success = powderStorage->addPowder(std::make_shared<Powder::Water>(rand()%800, rand()%200+500));
         i = success ? i : i-1;
     }
 }
@@ -82,9 +84,14 @@ void GameMaster::run(piksel::Graphics& g) {
     }
     
     // Draw all the powders
-    //printf("Drawing Powders\n");
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
-        iter->second->draw(g);
+        std::pair<int,int> pos = iter->second->getPosition();
+        if(pos.first < 1 || pos.first > this->powderSpaceWidth ||
+            pos.second < 1 || pos.second > this->powderSpaceHeight) {
+            powderStorage->removePowder(iter->second);
+        } else {
+            iter->second->draw(g);
+        }
     }
 
     powderStorage->endFrameHandling();

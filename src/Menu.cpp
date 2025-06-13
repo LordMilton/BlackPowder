@@ -8,10 +8,10 @@ Menu::Menu(int windowWidth, int windowHeight, std::shared_ptr<std::vector<std::s
         windowHeight(windowHeight),
         menuWidth(windowWidth),
         menuHeight(100) {
-    std::pair<int,int> nextTopLeft = std::make_pair(0, windowHeight - 200);
+    std::pair<int,int> nextTopLeft = std::make_pair(0, windowHeight - menuHeight);
     for(std::vector<std::shared_ptr<Powder::Powder>>::iterator iter = powderTypesList->begin(); iter != powderTypesList->end(); iter++) {
         // TODO Fix name assignment
-        menuButtons.push_back(MenuButton(nextTopLeft, std::make_pair(nextTopLeft.first + Menu::MenuButton::BUTTON_WIDTH, nextTopLeft.second + Menu::MenuButton::BUTTON_HEIGHT), (*iter)->getColor(), typeid(**iter).name()));
+        menuButtons.push_back(MenuButton(nextTopLeft, std::make_pair(nextTopLeft.first + Menu::MenuButton::BUTTON_WIDTH, nextTopLeft.second + Menu::MenuButton::BUTTON_HEIGHT), (*iter)->getColor(), (*iter)->getName()));
         nextTopLeft.first = nextTopLeft.first + Menu::MenuButton::BUTTON_WIDTH;
     }
 }
