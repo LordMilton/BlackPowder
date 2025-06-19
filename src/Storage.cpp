@@ -61,14 +61,14 @@ powder_ptr Storage::removePowder(powder_ptr toRemove) {
     return toRemove;
 }
 
-powder_ptr Storage::getPowderAtLocation(int xPos, int yPos) {
+int_powder_map::iterator Storage::getPowderAtLocation(int xPos, int yPos) {
     // IF there is no powder at the indicated location in the most recent frame OR
     // that powder has already had its physics calculated for the next frame (i.e. it may no longer be in that location) THEN
     // return the powder that will be there in the next frame if there is one
     if(powders->count(hashPosition(xPos, yPos)) == 0 || powders->at(hashPosition(xPos, yPos))->getChanged()) {
-        return futurePowders->at(hashPosition(xPos, yPos));
+        return futurePowders->find(hashPosition(xPos, yPos));
     }
-    return powders->at(hashPosition(xPos, yPos));
+    return powders->find(hashPosition(xPos, yPos));
 }
 
 size_t Storage::hashPowder(powder_ptr powder) {

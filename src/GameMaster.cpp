@@ -104,10 +104,9 @@ void GameMaster::run(piksel::Graphics& g) {
                 float percentAcrossCircle = (abs(xPos - curMouseLocation.first) / (drawToolRadius*1.0f));
                 int verticalPixels = drawToolRadius * (cos(percentAcrossCircle * .5 * 3.14f));
                 for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
-                    try {
-                        toRemove.push_back(powderStorage->getPowderAtLocation(xPos,yPos));
-                    } catch(std::out_of_range e) {
-                        //No powders at location, nothing to remove
+                    int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(xPos,yPos);
+                    if(mapPointer != powderStorage->getPowdersIterators().second) {
+                        toRemove.push_back((*mapPointer).second);
                     }
                 }
             }
