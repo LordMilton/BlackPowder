@@ -24,6 +24,12 @@ std::pair<int_powder_map::iterator, int_powder_map::iterator> Storage::getPowder
     return std::make_pair(powders->begin(), powders->end());
 }
 
+void Storage::addPowders(std::vector<powder_ptr> &toAdd) {
+    for(std::vector<powder_ptr>::iterator iter = toAdd.begin(); iter != toAdd.end(); iter++) {
+        addPowder(*iter);
+    }
+}
+
 bool Storage::addPowder(powder_ptr toAdd) {
     bool added = false;
     if(midFrame) {
@@ -34,13 +40,13 @@ bool Storage::addPowder(powder_ptr toAdd) {
     }
 
     if(!added) {
-        printf("WARNING: Tried to add powder where there already was one\n");
+        //printf("WARNING: Tried to add powder where there already was one\n");
     }
     return added;
 }
 
-void Storage::removePowders(std::shared_ptr<std::vector<powder_ptr>> toRemove) {
-    for(std::vector<powder_ptr>::iterator iter = toRemove->begin(); iter != toRemove->end(); iter++) {
+void Storage::removePowders(std::vector<powder_ptr> &toRemove) {
+    for(std::vector<powder_ptr>::iterator iter = toRemove.begin(); iter != toRemove.end(); iter++) {
         removePowder(*iter);
     }
 }

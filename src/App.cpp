@@ -42,6 +42,10 @@ void App::mouseReleased(int button) {
     gm->mouseReleased(button);
 }
 
+void App::mouseWheel(int delta) {
+    gm->mouseWheel(delta);
+}
+
 int main() {
     const int WINDOW_WIDTH = 800;
     const int WINDOW_HEIGHT = 800;

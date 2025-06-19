@@ -41,5 +41,12 @@ class App : public piksel::BaseApp {
          * @param button An integer indicating which button was released
          */
         void mouseReleased(int button);
+
+        /**
+         * Called by BaseApp whenever the mouse wheel is moved
+         * 
+         * @param delta An integer indicating how far the wheel was moved
+         */
+        void mouseWheel(int delta);
 };
 #endif /* APP_HPP */

@@ -1,3 +1,4 @@
+#include <cmath>
 #include <memory>
 #include <stdexcept>
 
@@ -8,7 +9,7 @@
 std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density) {
     std::pair<int,int> position = std::make_pair(x,y);
     if(gravity) {
-        int rng = rand()%100;
+        int rng = pow(rand()%10, 2);
         int yMove = density >= 0 ? 1 : -1;
         if(rng < density*100) {
             position.second = y + yMove;
@@ -21,7 +22,14 @@ std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density)
     return position;
 }
 
-GameMaster::GameMaster(int windowWidth, int windowHeight) {
+GameMaster::GameMaster(int windowWidth, int windowHeight) :
+        windowWidth(windowWidth),
+        windowHeight(windowHeight),
+        powderStorage(std::make_shared<Storage>()),
+        curMouseLocation(std::make_pair(0,0)),
+        drawToolRadius(1),
+        lmbPressed(false),
+        rmbPressed(false){
     this->windowWidth = windowWidth;
     this->windowHeight = windowHeight;
     powderStorage = std::make_shared<Storage>();
@@ -52,6 +60,13 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) {
 GameMaster::~GameMaster() {}
 
 void GameMaster::run(piksel::Graphics& g) {
+    // Draw the draw tool
+    if(curMouseLocation.second <= powderSpaceHeight) {
+        g.noFill();
+        g.stroke(glm::vec4(0.588f, 0.588f, 0.588f, 1.0f));
+        g.ellipse(curMouseLocation.first, curMouseLocation.second, drawToolRadius*2 - 1, drawToolRadius*2 - 1);
+    }
+    
     // Draw powder selection menu
     selectionMenu->draw(g);
 
@@ -59,19 +74,23 @@ void GameMaster::run(piksel::Graphics& g) {
     if(lmbPressed) {
         if(curMouseLocation.second <= powderSpaceHeight) {
             // TODO Make a Factory for Powders to do this logic
-            powder_ptr toAdd;
-            if(selectionMenu->getCurrentSelection() == "Sand") {
-                toAdd = std::make_shared<Powder::Sand>(curMouseLocation.first,curMouseLocation.second);
+            std::vector<powder_ptr> toAdd = std::vector<powder_ptr>();
+            for(int xPos = curMouseLocation.first - (drawToolRadius-1); xPos <= curMouseLocation.first + (drawToolRadius-1); xPos++) {
+                float percentAcrossCircle = (abs(xPos - curMouseLocation.first) / (drawToolRadius*1.0f));
+                int verticalPixels = drawToolRadius * (cos(percentAcrossCircle * .5 * 3.14f));
+                for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
+                    if(selectionMenu->getCurrentSelection() == "Sand") {
+                        toAdd.push_back(std::make_shared<Powder::Sand>(xPos,yPos));
+                    }
+                    else if(selectionMenu->getCurrentSelection() == "Water") {
+                        toAdd.push_back(std::make_shared<Powder::Water>(xPos,yPos));
+                    }
+                    else {
+                        printf("WARNING: Selection menu indicated a powder that we couldn't make: %s\n", selectionMenu->getCurrentSelection().c_str());
+                    }
+                }
             }
-            else if(selectionMenu->getCurrentSelection() == "Water") {
-                toAdd = std::make_shared<Powder::Water>(curMouseLocation.first,curMouseLocation.second);
-            }
-
-            if(toAdd) {
-                powderStorage->addPowder(toAdd);
-            } else {
-                printf("WARNING: Selection menu indicated a powder that we couldn't make: %s\n", selectionMenu->getCurrentSelection().c_str());
-            }
+            powderStorage->addPowders(toAdd);
         }
         else if(curMouseLocation.second > powderSpaceHeight) {
             selectionMenu->clicked(curMouseLocation.first, curMouseLocation.second);
@@ -80,13 +99,19 @@ void GameMaster::run(piksel::Graphics& g) {
     }
     else if(rmbPressed) {
         if(curMouseLocation.second <= powderSpaceHeight) {
-            try{
-                std::shared_ptr<std::vector<powder_ptr>> toRemove = std::make_shared<std::vector<std::shared_ptr<Powder::Powder>>>();
-                toRemove->push_back(powderStorage->getPowderAtLocation(curMouseLocation.first,curMouseLocation.second));
-                powderStorage->removePowders(toRemove);
-            } catch(std::out_of_range e) {
-                //No powders at cursor, nothing to remove
+            std::vector<powder_ptr> toRemove = std::vector<powder_ptr>();
+            for(int xPos = curMouseLocation.first - (drawToolRadius-1); xPos <= curMouseLocation.first + (drawToolRadius-1); xPos++) {
+                float percentAcrossCircle = (abs(xPos - curMouseLocation.first) / (drawToolRadius*1.0f));
+                int verticalPixels = drawToolRadius * (cos(percentAcrossCircle * .5 * 3.14f));
+                for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
+                    try {
+                        toRemove.push_back(powderStorage->getPowderAtLocation(xPos,yPos));
+                    } catch(std::out_of_range e) {
+                        //No powders at location, nothing to remove
+                    }
+                }
             }
+            powderStorage->removePowders(toRemove);
         }
     }
     
@@ -136,4 +161,10 @@ void GameMaster::mouseButtonChanged(int button, bool pressed) {
     else if(button == 1) {
         rmbPressed = pressed;
     }
+}
+
+void GameMaster::mouseWheel(int delta) {
+    drawToolRadius += delta;
+    drawToolRadius = fmax(1, drawToolRadius);
+    drawToolRadius = fmin(20, drawToolRadius);
 }

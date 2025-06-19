@@ -72,11 +72,16 @@ class Storage {
         std::pair<int_powder_map::iterator, int_powder_map::iterator> getPowdersIterators();
 
         /**
+         * Adds a list of powders to the simulation
+         */
+        void addPowders(std::vector<powder_ptr> &toRemove);
+
+        /**
          * Add a powder to the simulation
          * 
          * @return True if powder successfully added, else false
          */
-        bool addPowder(powder_ptr toAdd);
+        bool addPowder(powder_ptr toAdd);        
 
         /**
          * Remove powders from the simulation
@@ -84,8 +89,17 @@ class Storage {
          * To avoid breaking iteration through the list of powders, removal will be prevented when Storage
          * has been told it is in the middle of a frame (physics calculations/drawing/etc.)
          */
-        void removePowders(std::shared_ptr<std::vector<powder_ptr>> toRemove);
+        void removePowders(std::vector<powder_ptr> &toRemove);
 
+        /**
+         * Remove a powder from the simulation
+         * 
+         * To avoid breaking iteration through the list of powders, removal will be prevented when Storage
+         * has been told it is in the middle of a frame (physics calculations/drawing/etc.)
+         * 
+         * @return The powder removed
+         * @throws out_of_range exception if provided powder doesn't exist
+         */
         powder_ptr removePowder(powder_ptr toRemove);
 
         /**

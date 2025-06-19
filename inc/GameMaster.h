@@ -30,7 +30,11 @@ class GameMaster {
         /**
          * The current location of the mouse cursor
          */
-        std::pair<int,int> curMouseLocation; 
+        std::pair<int,int> curMouseLocation;
+        /**
+         * Current radius of the draw tool
+         */
+        int drawToolRadius;
         /**
          * Whether the left mouse button is currently held down
          */
@@ -66,14 +70,22 @@ class GameMaster {
 
         /**
          * Call whenever BaseApp::mousePressed is called
+         * 
+         * @param 0 is lmb, 1 is rmb, 2 is mmb
          */
         void mousePressed(int button);
 
         /**
          * Call whenever BaseApp::mouseReleased is called
+         * 
+         * @param 0 is lmb, 1 is rmb, 2 is mmb
          */
         void mouseReleased(int button);
 
+        /**
+         * Call whenever BaseApp::mouseWheel is called
+         */
+        void mouseWheel(int delta);
 };
 
 #endif
