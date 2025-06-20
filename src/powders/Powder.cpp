@@ -14,8 +14,9 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
         // Don't let powder exit the screen
         // At some point we'll draw walls around the edges when we don't want powders leaving the screen
         if(!(newPos.first > 800 || newPos.second > 700 || newPos.first < 1 || newPos.second < 1)) {
-            try {
-                std::shared_ptr<Powder> overlap = powderStorage->getPowderAtLocation(newPos.first, newPos.second);
+            int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(newPos.first,newPos.second);
+            if(mapPointer != powderStorage->getPowdersIterators().second) {
+                std::shared_ptr<Powder> overlap = (*mapPointer).second;
                 if(this->density <= overlap->getDensity()) {
                     newPos = this->getPosition();
                 }
@@ -26,9 +27,8 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
                     x = newPos.first;
                     y = newPos.second;
                 }
-            } catch (std::out_of_range e) {
-                // Exception from trying to find powder at newPos, meaning the space is empty
-                // TODO: Exceptions can be slow, consider changing this
+            }
+            else {
                 x = newPos.first;
                 y = newPos.second;
             }
@@ -36,6 +36,9 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
         else {
             newPos = this->getPosition();
         }
+        // Copy powders such that the new powder is not indicated as changed for the next frame
+        // TODO we don't care about the changed flag when powders are in the future powders map,
+        //    test efficiency of iterating that map and resetting the changed flag instead of doing the copying like below
         std::shared_ptr<Powder> newPowder = this->copyPowder(newPos.first, newPos.second);
         powderStorage->addPowder(newPowder);
         setChanged();
