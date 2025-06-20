@@ -106,7 +106,7 @@ void GameMaster::run(piksel::Graphics& g) {
                 for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
                     int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(xPos,yPos);
                     if(mapPointer != powderStorage->getPowdersIterators().second) {
-                        toRemove.push_back((*mapPointer).second);
+                        toRemove.push_back(mapPointer->second);
                     }
                 }
             }

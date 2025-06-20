@@ -36,6 +36,9 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
         else {
             newPos = this->getPosition();
         }
+        // Copy powders such that the new powder is not indicated as changed for the next frame
+        // TODO we don't care about the changed flag when powders are in the future powders map,
+        //    test efficiency of iterating that map and resetting the changed flag instead of doing the copying like below
         std::shared_ptr<Powder> newPowder = this->copyPowder(newPos.first, newPos.second);
         powderStorage->addPowder(newPowder);
         setChanged();
