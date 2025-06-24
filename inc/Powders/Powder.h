@@ -14,14 +14,7 @@ namespace Powder
 
     class Powder {
         protected:
-            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name) :
-                    x(xPos),
-                    y(yPos),
-                    gravity(gravity),
-                    density(density),
-                    color(color),
-                    name(name),
-                    changedThisFrame(false) {}
+            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name);
 
             /** 
              * If true then powder falls or rises (depends on density), else powder does not move
@@ -62,57 +55,23 @@ namespace Powder
         public:
             static const int PIXEL_SIZE = 1;
 
-            bool getGravity() {
-                return gravity;
-            }
-
-            float getDensity() {
-                return density;
-            }
-
-            glm::vec4 getColor() {
-                return color;
-            }
+            bool getGravity();
+            float getDensity();
+            glm::vec4 getColor();
             /**
              * Returns position as [x,y]
              */
-            std::pair<int,int> getPosition() {
-                return(std::make_pair(x,y));
-            }
-
-            void setChanged() {
-                changedThisFrame = true;
-            }
-
-            bool getChanged() {
-                return(changedThisFrame);
-            }
-
-            std::string getName() {
-                return name;
-            }
+            std::pair<int,int> getPosition();
+            void setChanged();
+            bool getChanged();
+            std::string getName();
 
             /**
              * Draw the powder as a pixel object
              */
-            void draw(piksel::Graphics& g){
-                g.strokeWeight(PIXEL_SIZE);
-                g.stroke(color);
-                g.point(x,y);
-            }
+            void draw(piksel::Graphics& g);
 
-            bool operator==(const Powder& other) {
-                if(typeid(*this) == typeid(other) &&
-                        this->color == other.color &&
-                        this->gravity == other.gravity &&
-                        this->density == other.density &&
-                        this->x == other.x &&
-                        this->y == other.y) {
-                    return true;
-                }
-                
-                return false;
-            }
+            bool operator==(const Powder& other);
 
             /**
              * Advance the powder by one frame.
@@ -127,12 +86,7 @@ namespace Powder
              * Shift the powder to a new location.
              * Lets other powders displace this one due to their own physics
              */
-            void shiftPowder(int newXPos, int newYPos) {
-                //TODO Something about changing these coordinates feels wrong, not sure how to change it
-                this->x = newXPos;
-                this->y = newYPos;
-                this->setChanged();
-            }
+            void shiftPowder(int newXPos, int newYPos);
 
             virtual std::shared_ptr<Powder> copyPowder() = 0;
 

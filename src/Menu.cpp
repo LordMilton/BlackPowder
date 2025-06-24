@@ -21,6 +21,8 @@ Menu::~Menu() {}
 void Menu::draw(piksel::Graphics& g) {
     g.push();
     g.rectMode(piksel::DrawMode::CORNERS);
+    g.fill(glm::vec4(0.0f,0.0f,0.0f,1.0f));
+    g.rect(0, windowHeight - menuHeight, windowWidth, windowHeight);
     g.noFill();
     for(std::vector<MenuButton>::iterator iter = menuButtons.begin(); iter != menuButtons.end(); iter++) {
         g.push();

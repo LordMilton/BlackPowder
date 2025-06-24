@@ -1,16 +1,16 @@
-#ifndef SAND_H
-#define SAND_H
+#ifndef WALL_H
+#define WALL_H
 
 #include <functional>
 #include "Powder.h"
 #include "Storage.h"
 
 namespace Powder {
-    class Sand : public Powder {
+    class Wall : public Powder {
 
         public:
-            Sand(int x, int y);
-            ~Sand();
+            Wall(int x, int y);
+            ~Wall();
 
             powder_ptr copyPowder();
 
