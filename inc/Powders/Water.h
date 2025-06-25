@@ -15,8 +15,6 @@ namespace Powder {
             powder_ptr copyPowder();
 
             powder_ptr copyPowder(int newXPos, int newYPos);
-
-            std::string getName();
     };
 }
 

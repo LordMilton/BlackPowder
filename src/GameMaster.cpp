@@ -4,6 +4,7 @@
 
 #include "GameMaster.h"
 #include "Sand.h"
+#include "Wall.h"
 #include "Water.h"
 
 std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density) {
@@ -40,11 +41,21 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
     std::shared_ptr<std::vector<powder_ptr>> menuPowders = std::shared_ptr<std::vector<powder_ptr>>(new std::vector<powder_ptr>());
     menuPowders->push_back(std::shared_ptr<Powder::Sand>(new Powder::Sand(0,0)));
     menuPowders->push_back(std::shared_ptr<Powder::Water>(new Powder::Water(0,0)));
+    menuPowders->push_back(std::shared_ptr<Powder::Wall>(new Powder::Wall(0,0)));
     selectionMenu = std::unique_ptr<Menu>(new Menu(this->windowWidth, this->windowHeight, menuPowders));
     menuPowders.reset();
     
     powderSpaceWidth = this->windowWidth;
     powderSpaceHeight = this->windowHeight - selectionMenu->getMenuDimensions().second;
+
+    for(int i = 1; i <= powderSpaceHeight; i++) {
+        for(int j = 1; j <= powderSpaceWidth; j++) {
+            powderStorage->addPowder(std::make_shared<Powder::Wall>(j, i));
+            if(i != 1 && i != powderSpaceHeight) {
+                j += powderSpaceWidth-2;
+            }
+        }
+    }
 
     for(int i = 0; i < 10000; i++) {
         int typeRand = rand() % 2;
@@ -60,17 +71,7 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
 GameMaster::~GameMaster() {}
 
 void GameMaster::run(piksel::Graphics& g) {
-    // Draw the draw tool
-    if(curMouseLocation.second <= powderSpaceHeight) {
-        g.noFill();
-        g.stroke(glm::vec4(0.588f, 0.588f, 0.588f, 1.0f));
-        g.ellipse(curMouseLocation.first, curMouseLocation.second, drawToolRadius*2 - 1, drawToolRadius*2 - 1);
-    }
-    
-    // Draw powder selection menu
-    selectionMenu->draw(g);
-
-    // Create new powders via user
+    // Create/delete new powders via user
     if(lmbPressed) {
         if(curMouseLocation.second <= powderSpaceHeight) {
             // TODO Make a Factory for Powders to do this logic
@@ -81,6 +82,9 @@ void GameMaster::run(piksel::Graphics& g) {
                 for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
                     if(selectionMenu->getCurrentSelection() == "Sand") {
                         toAdd.push_back(std::make_shared<Powder::Sand>(xPos,yPos));
+                    }
+                    else if(selectionMenu->getCurrentSelection() == "Wall") {
+                        toAdd.push_back(std::make_shared<Powder::Wall>(xPos,yPos));
                     }
                     else if(selectionMenu->getCurrentSelection() == "Water") {
                         toAdd.push_back(std::make_shared<Powder::Water>(xPos,yPos));
@@ -116,6 +120,8 @@ void GameMaster::run(piksel::Graphics& g) {
     
     powderStorage->startFrameHandling();
 
+    // PHYSICS PHYSICS PHYSICS
+
     // Handle normal frame stuff
     std::pair<int_powder_map::iterator, int_powder_map::iterator> powderIterators = powderStorage->getPowdersIterators();
     int_powder_map::iterator beginIter = powderIterators.first;
@@ -126,6 +132,8 @@ void GameMaster::run(piksel::Graphics& g) {
         powder_ptr curPowder = iter->second;
         curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
     }
+
+    // DRAWING DRAWING DRAWING
     
     // Draw all the powders
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
@@ -137,6 +145,16 @@ void GameMaster::run(piksel::Graphics& g) {
             iter->second->draw(g);
         }
     }
+
+    // Draw the draw tool
+    if(curMouseLocation.second <= powderSpaceHeight) {
+        g.noFill();
+        g.stroke(glm::vec4(0.588f, 0.588f, 0.588f, 1.0f));
+        g.ellipse(curMouseLocation.first, curMouseLocation.second, drawToolRadius*2 - 1, drawToolRadius*2 - 1);
+    }
+
+    // Draw powder selection menu
+    selectionMenu->draw(g);
 
     powderStorage->endFrameHandling();
 }

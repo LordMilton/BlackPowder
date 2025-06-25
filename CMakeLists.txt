@@ -9,7 +9,15 @@ project ("BlackPowder")
 add_subdirectory(lib/piksel)
 
 # Add source to this project's executable.
-add_executable (BlackPowder "src/App.cpp" "src/GameMaster.cpp" "src/Storage.cpp" "src/Menu.cpp" "src/powders/Sand.cpp" "src/powders/Water.cpp" "src/powders/Powder.cpp")
+add_executable (BlackPowder
+                "src/App.cpp"
+                "src/GameMaster.cpp"
+                "src/Menu.cpp"
+                "src/Storage.cpp"
+                "src/powders/Powder.cpp"
+                "src/powders/Sand.cpp"
+                "src/powders/Wall.cpp"
+                "src/powders/Water.cpp")
 
 set(CMAKE_CXX_STANDARD C++20)
 
