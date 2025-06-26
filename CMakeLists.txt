@@ -12,6 +12,7 @@ add_subdirectory(lib/piksel)
 add_executable (BlackPowder
                 "src/App.cpp"
                 "src/GameMaster.cpp"
+                "src/Interactions.cpp"
                 "src/Menu.cpp"
                 "src/Storage.cpp"
                 "src/powders/Powder.cpp"
