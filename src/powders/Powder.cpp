@@ -4,6 +4,7 @@
 
 #include "type_vec4.hpp"
 #include "piksel/graphics.hpp"
+#include "Interactions.h"
 #include "Powder.h"
 
 Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name) :
@@ -18,13 +19,15 @@ Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec
 bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage) {
     bool advanced = false;
     if(!changedThisFrame) {
-        if(this->gravity) {
-            std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
-            std::shared_ptr<Powder> displacedPowder = NULL;
+        std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
+        std::shared_ptr<Powder> displacedPowder = NULL;
 
-            int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(newPos.first,newPos.second);
-            if(mapPointer != powderStorage->getPowdersIterators().second) {
-                std::shared_ptr<Powder> overlap = (*mapPointer).second;
+        bool specialInteractionOccurred = false;
+        int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(newPos.first,newPos.second);
+        if(mapPointer != powderStorage->getPowdersIterators().second) {
+            std::shared_ptr<Powder> overlap = mapPointer->second;
+            specialInteractionOccurred = Interactions::interact(powderStorage->getPowderAtLocation(x,y)->second, overlap, true, powderStorage);
+            if(!specialInteractionOccurred) {
                 if(!overlap->getGravity() || this->density <= overlap->getDensity()) {
                     newPos = this->getPosition();
                 }
@@ -36,22 +39,21 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
                     y = newPos.second;
                 }
             }
-            else {
-                x = newPos.first;
-                y = newPos.second;
-            }
-            
+        }
+        else {
+            x = newPos.first;
+            y = newPos.second;
+        }
+        
+        if(!specialInteractionOccurred) {
             // This isn't obviously less efficient than iterating to reset the changed flag
+            setChanged();
             std::shared_ptr<Powder> newPowder = this->copyPowder(newPos.first, newPos.second);
             powderStorage->addPowder(newPowder);
-            setChanged();
             if(displacedPowder != NULL)
                 powderStorage->addPowder(displacedPowder->copyPowder());
         }
-        else { // If no gravity
-            setChanged();
-            powderStorage->addPowder(this->copyPowder());
-        }
+
         advanced = true;
     }
     return(advanced);
