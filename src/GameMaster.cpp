@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "GameMaster.h"
+#include "Fire.h"
 #include "Sand.h"
 #include "Wall.h"
 #include "Water.h"
@@ -12,7 +13,7 @@ std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density)
     if(gravity) {
         int rng = pow(rand()%10, 2);
         int yMove = density >= 0 ? 1 : -1;
-        if(rng < density*100) {
+        if(rng < abs(density*100)) {
             position.second = y + yMove;
         }
         else {
@@ -39,6 +40,7 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
     rmbPressed = false;
 
     std::shared_ptr<std::vector<powder_ptr>> menuPowders = std::shared_ptr<std::vector<powder_ptr>>(new std::vector<powder_ptr>());
+    menuPowders->push_back(std::shared_ptr<Powder::Fire>(new Powder::Fire(0,0)));
     menuPowders->push_back(std::shared_ptr<Powder::Sand>(new Powder::Sand(0,0)));
     menuPowders->push_back(std::shared_ptr<Powder::Water>(new Powder::Water(0,0)));
     menuPowders->push_back(std::shared_ptr<Powder::Wall>(new Powder::Wall(0,0)));
@@ -56,16 +58,6 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
             }
         }
     }
-
-    for(int i = 0; i < 10000; i++) {
-        int typeRand = rand() % 2;
-        bool success = false;
-        if(typeRand == 0)
-            success = powderStorage->addPowder(std::make_shared<Powder::Sand>(rand()%800, rand()%700));
-        else if(typeRand == 1)
-            success = powderStorage->addPowder(std::make_shared<Powder::Water>(rand()%800, rand()%200+500));
-        i = success ? i : i-1;
-    }
 }
 
 GameMaster::~GameMaster() {}
@@ -80,7 +72,10 @@ void GameMaster::run(piksel::Graphics& g) {
                 float percentAcrossCircle = (abs(xPos - curMouseLocation.first) / (drawToolRadius*1.0f));
                 int verticalPixels = drawToolRadius * (cos(percentAcrossCircle * .5 * 3.14f));
                 for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
-                    if(selectionMenu->getCurrentSelection() == "Sand") {
+                    if(selectionMenu->getCurrentSelection() == "Fire") {
+                        toAdd.push_back(std::make_shared<Powder::Fire>(xPos,yPos));
+                    }
+                    else if(selectionMenu->getCurrentSelection() == "Sand") {
                         toAdd.push_back(std::make_shared<Powder::Sand>(xPos,yPos));
                     }
                     else if(selectionMenu->getCurrentSelection() == "Wall") {

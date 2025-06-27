@@ -15,6 +15,7 @@ add_executable (BlackPowder
                 "src/Interactions.cpp"
                 "src/Menu.cpp"
                 "src/Storage.cpp"
+                "src/powders/Fire.cpp"
                 "src/powders/Powder.cpp"
                 "src/powders/Sand.cpp"
                 "src/powders/Wall.cpp"

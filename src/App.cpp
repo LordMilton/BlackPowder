@@ -47,8 +47,8 @@ void App::mouseWheel(int delta) {
 }
 
 int main() {
-    const int WINDOW_WIDTH = 800;
-    const int WINDOW_HEIGHT = 800;
+    const int WINDOW_WIDTH = 600;
+    const int WINDOW_HEIGHT = 600;
 
 	std::unique_ptr<App> app = std::make_unique<App>(WINDOW_WIDTH, WINDOW_HEIGHT, "Black Powder");
     //App app("Black Powder", false);

@@ -14,7 +14,7 @@ namespace Powder
 
     class Powder {
         protected:
-            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name);
+            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name, int halfLife = 0);
 
             /** 
              * If true then powder falls or rises (depends on density), else powder does not move
@@ -46,6 +46,11 @@ namespace Powder
              * Y coordinate
              */
             int y;
+            /**
+             * Half life of this powder, or how many frames on average it should exist before disappearing
+             * If set to 0, this powder does not have a half life and can exist indefinitely
+             */
+            int halfLife;
 
             /**
              * Whether this powder has moved this frame, whether by it's own physics or being displaced

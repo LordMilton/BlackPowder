@@ -3,10 +3,11 @@
 
 #include "Powder.h"
 #include "Storage.h"
-#include "Wall.h"
-#include "Water.h"
 
 class Interactions {
+    private:
+        static void fireWaterInteract(std::shared_ptr<Powder::Powder> powder1, std::shared_ptr<Powder::Powder> powder2, bool firstPowderMoved, std::shared_ptr<Storage> powderStorage);
+
     public:
         /**
          * Determines interaction between two generic Powders. This is the generic case that will be hit
@@ -18,7 +19,7 @@ class Interactions {
          * @param firstMoved If true, then powder1 is attempting to shift into powder2's space, if false then vice versa
          *                      Useful for permitting symmetry between interact() methods of the same two Powders
          * 
-         * @return False
+         * @return True if a special interaction occurred, False otherwise
          */
         static bool interact(std::shared_ptr<Powder::Powder> powder1, std::shared_ptr<Powder::Powder> powder2, bool firstPowderMoved, std::shared_ptr<Storage> powderStorage);
 };
