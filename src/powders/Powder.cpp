@@ -7,13 +7,15 @@
 #include "Interactions.h"
 #include "Powder.h"
 
-Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name, int halfLife) :
+std::string Powder::Powder::powderTypeNameList[] = {"Fire", "Sand", "Wall", "Water"};
+
+Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife) :
                     x(xPos),
                     y(yPos),
                     gravity(gravity),
                     density(density),
                     color(color),
-                    name(name),
+                    powderType(powderType),
                     changedThisFrame(false),
                     halfLife(halfLife) {}
 
@@ -103,7 +105,11 @@ bool Powder::Powder::getChanged() {
 }
 
 std::string Powder::Powder::getName() {
-    return name;
+    return powderTypeNameList[int(powderType)];
+}
+
+Powder::Powder::PowderType Powder::Powder::getPowderType() {
+    return powderType;
 }
 
 /**

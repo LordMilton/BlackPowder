@@ -6,7 +6,7 @@
 #include "Powder.h"
 
 Powder::Fire::Fire(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, true, -.4f, glm::vec4(0.929f, 0.388f, 0.18f, 0.91f), "Fire", 80) {
+        Powder::Powder(xPos, yPos, true, -.4f, glm::vec4(0.929f, 0.388f, 0.18f, 0.91f), PowderType::fire, 80) {
 }
 
 Powder::Fire::~Fire() {}

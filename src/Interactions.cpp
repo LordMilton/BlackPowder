@@ -5,28 +5,29 @@ bool Interactions::interact(std::shared_ptr<Powder::Powder> powder1,
                             std::shared_ptr<Powder::Powder> powder2,
                             bool firstPowderMoved,
                             std::shared_ptr<Storage> powderStorage) {
-    
-    if(powder1->getName() == "Fire") {
-        if(powder2->getName() == "Water") {
-            fireWaterInteract(powder1, powder2, firstPowderMoved, powderStorage);
-            
-            return true;
-        }
-    }
 
-    if(powder1->getName() == "Water") {
-        if(powder2->getName() == "Fire") {
-            fireWaterInteract(powder2, powder1, !firstPowderMoved, powderStorage);
-            
-            return true;
-        }
+    switch(powder1->getPowderType()) {
+        case PowderType::fire:
+            switch(powder2->getPowderType()) {
+                case PowderType::water:
+                    return fireWaterInteract(powder1, powder2, firstPowderMoved, powderStorage);
+                    break;
+            }
+            break;
+        case PowderType::water:
+            switch(powder2->getPowderType()) {
+                case PowderType::fire:
+                    return fireWaterInteract(powder2, powder1, !firstPowderMoved, powderStorage);
+                    break;
+            }
+            break;
     }
 
     // Interactions between two powders should generally be covered by generic gravity/density/etc. physics
     return false;
 }
 
-void Interactions::fireWaterInteract(std::shared_ptr<Powder::Powder> powder1, std::shared_ptr<Powder::Powder> powder2, bool firstPowderMoved, std::shared_ptr<Storage> powderStorage) {
+bool Interactions::fireWaterInteract(std::shared_ptr<Powder::Powder> powder1, std::shared_ptr<Powder::Powder> powder2, bool firstPowderMoved, std::shared_ptr<Storage> powderStorage) {
     powderStorage->removePowder(powder1);
     powderStorage->removePowder(powder2);
     
@@ -39,4 +40,6 @@ void Interactions::fireWaterInteract(std::shared_ptr<Powder::Powder> powder1, st
 
     powder1->shiftPowder(contactPos.first, contactPos.second);
     powderStorage->addPowder(newPowder2);
+
+    return true;
 }
