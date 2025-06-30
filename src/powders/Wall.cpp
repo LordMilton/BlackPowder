@@ -6,7 +6,7 @@
 #include "Powder.h"
 
 Powder::Wall::Wall(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, false, 0, glm::vec4(0.561f, 0.561f, 0.561f, 1.0f), "Wall") {
+        Powder::Powder(xPos, yPos, false, 0, glm::vec4(0.561f, 0.561f, 0.561f, 1.0f), PowderType::wall) {
 }
 
 Powder::Wall::~Wall() {}

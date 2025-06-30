@@ -13,9 +13,21 @@ namespace Powder
 {
 
     class Powder {
-        protected:
-            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name);
+        public:
+            enum class PowderType { 
+                fire,
+                sand,
+                wall,
+                water
+            };
 
+        protected:
+            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0);
+
+            /**
+             * Table for translating the powder type into a name string
+             */
+            static std::string powderTypeNameList [];
             /** 
              * If true then powder falls or rises (depends on density), else powder does not move
              */
@@ -33,11 +45,11 @@ namespace Powder
              */
             const glm::vec4 color;
             /**
-             * Name of the powder
+             * Type of the powder
              * 
-             * The name is the same for all instances of a powder, but needs to be accessible by things that don't know the powder type so shouldn't be static
+             * The type is the same for all instances of a powder, but needs to be accessible by things that don't know the powder type so shouldn't be static
              */
-            const std::string name;
+            const PowderType powderType;
             /**
              * X coordinate
              */
@@ -46,6 +58,11 @@ namespace Powder
              * Y coordinate
              */
             int y;
+            /**
+             * Half life of this powder, or how many frames on average it should exist before disappearing
+             * If set to 0, this powder does not have a half life and can exist indefinitely
+             */
+            int halfLife;
 
             /**
              * Whether this powder has moved this frame, whether by it's own physics or being displaced
@@ -53,6 +70,7 @@ namespace Powder
             bool changedThisFrame = false;
         
         public:
+
             static const int PIXEL_SIZE = 1;
 
             bool getGravity();
@@ -65,6 +83,7 @@ namespace Powder
             void setChanged();
             bool getChanged();
             std::string getName();
+            PowderType getPowderType();
 
             /**
              * Draw the powder as a pixel object
@@ -93,5 +112,7 @@ namespace Powder
             virtual std::shared_ptr<Powder> copyPowder(int newXPos, int newYPos) = 0;
     };
 }
+
+typedef Powder::Powder::PowderType PowderType;
 
 #endif

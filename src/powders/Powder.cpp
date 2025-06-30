@@ -7,17 +7,31 @@
 #include "Interactions.h"
 #include "Powder.h"
 
-Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, std::string name) :
+std::string Powder::Powder::powderTypeNameList[] = {"Fire", "Sand", "Wall", "Water"};
+
+Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife) :
                     x(xPos),
                     y(yPos),
                     gravity(gravity),
                     density(density),
                     color(color),
-                    name(name),
-                    changedThisFrame(false) {}
+                    powderType(powderType),
+                    changedThisFrame(false),
+                    halfLife(halfLife) {}
 
 bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage) {
     bool advanced = false;
+
+    if(halfLife >= 1) {
+        int rngRange = 10000;
+        int rng = rand()%rngRange;
+        double deleteChance = rngRange * (1.0 / halfLife);
+        if(rng <= deleteChance) {
+            powderStorage->removePowder(powderStorage->getPowderAtLocation(this->x,this->y)->second);
+            this->setChanged();
+        }
+    }
+    
     if(!changedThisFrame) {
         std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
         std::shared_ptr<Powder> displacedPowder = NULL;
@@ -91,7 +105,11 @@ bool Powder::Powder::getChanged() {
 }
 
 std::string Powder::Powder::getName() {
-    return name;
+    return powderTypeNameList[int(powderType)];
+}
+
+Powder::Powder::PowderType Powder::Powder::getPowderType() {
+    return powderType;
 }
 
 /**
