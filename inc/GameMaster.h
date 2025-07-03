@@ -54,6 +54,12 @@ class GameMaster {
          */
         std::pair<int,int> drawMenu();
 
+        /**
+         * The last time (w/r/t the time the simulation started) that a frame was drawn
+         * Needed for tracking/limiting fps
+         */
+        int lastFrameTime;
+
     public:
         GameMaster(int windowHeight, int windowWidth);
         ~GameMaster();

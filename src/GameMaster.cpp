@@ -1,6 +1,8 @@
+#include <chrono>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 
 #include "GameMaster.h"
 #include "Fire.h"
@@ -31,7 +33,8 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
         curMouseLocation(std::make_pair(0,0)),
         drawToolRadius(1),
         lmbPressed(false),
-        rmbPressed(false){
+        rmbPressed(false),
+        lastFrameTime(0) {
     this->windowWidth = windowWidth;
     this->windowHeight = windowHeight;
     powderStorage = std::make_shared<Storage>();
@@ -130,6 +133,10 @@ void GameMaster::run(piksel::Graphics& g) {
 
     // DRAWING DRAWING DRAWING
     
+    // Delay to max fps at 30
+    // TODO Not a busy wait, but is whacking out the fps
+    std::this_thread::sleep_for(std::chrono::milliseconds(int(fmax(0, g.millis() - lastFrameTime))));
+
     // Draw all the powders
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
         std::pair<int,int> pos = iter->second->getPosition();
@@ -143,13 +150,23 @@ void GameMaster::run(piksel::Graphics& g) {
 
     // Draw the draw tool
     if(curMouseLocation.second <= powderSpaceHeight) {
+        g.push();
         g.noFill();
         g.stroke(glm::vec4(0.588f, 0.588f, 0.588f, 1.0f));
         g.ellipse(curMouseLocation.first, curMouseLocation.second, drawToolRadius*2 - 1, drawToolRadius*2 - 1);
+        g.pop();
     }
 
     // Draw powder selection menu
     selectionMenu->draw(g);
+
+    // TODO Thread this separately so we can make it update not quite so quickly?
+    g.strokeWeight(1);
+    g.stroke(glm::vec4(0.5f, 1.0f, 0.5f, 1.0f));
+    g.text(std::to_string(int(1 / ((g.millis() - lastFrameTime)/1000.0))), 5, 20);
+    g.text(std::to_string(powderStorage->getNumPowders()), powderSpaceWidth - 50, 20);
+
+    lastFrameTime = g.millis();
 
     powderStorage->endFrameHandling();
 }
