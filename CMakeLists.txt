@@ -5,6 +5,9 @@ cmake_minimum_required (VERSION 3.31)
 
 project ("BlackPowder")
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 # Add piksel library
 add_subdirectory(lib/piksel)
 
@@ -20,8 +23,6 @@ add_executable (BlackPowder
                 "src/powders/Sand.cpp"
                 "src/powders/Wall.cpp"
                 "src/powders/Water.cpp")
-
-set(CMAKE_CXX_STANDARD C++20)
 
 target_include_directories(BlackPowder
     PUBLIC lib/piksel/src
