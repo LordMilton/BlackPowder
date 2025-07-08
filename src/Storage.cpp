@@ -71,6 +71,10 @@ int_powder_map::iterator Storage::getPowderAtLocation(int xPos, int yPos) {
     return powders->find(hashPosition(xPos, yPos));
 }
 
+int Storage::getNumPowders() {
+    return powders->size();
+}
+
 size_t Storage::hashPowder(powder_ptr powder) {
     std::pair<int,int> coords = powder->getPosition();
     return(hashPosition(coords.first, coords.second));

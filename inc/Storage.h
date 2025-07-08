@@ -106,6 +106,8 @@ class Storage {
          * Retrieves the powder at the given location
          */
         int_powder_map::iterator getPowderAtLocation(int xPos, int yPos);
+
+        int getNumPowders();
 };
 
 #endif /* STORAGE_H */
