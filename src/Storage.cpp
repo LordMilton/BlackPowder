@@ -1,11 +1,10 @@
 #include "Storage.h"
 #include "Powder.h"
 
-Storage::Storage() {
-    midFrame = false;
-    powders = std::make_unique<int_powder_map>();
-    futurePowders = std::make_unique<int_powder_map>();
-}
+Storage::Storage() :
+        midFrame(false),
+        powders(std::make_unique<int_powder_map>()),
+        futurePowders(std::make_unique<int_powder_map>()){}
 
 Storage::~Storage() {
 }
@@ -24,51 +23,71 @@ std::pair<int_powder_map::iterator, int_powder_map::iterator> Storage::getPowder
     return std::make_pair(powders->begin(), powders->end());
 }
 
-void Storage::addPowders(std::vector<powder_ptr> &toAdd) {
+bool Storage::addPowders(std::vector<powder_ptr> &toAdd) {
+    powdersMtx.lock();
+    bool added = true;
     for(std::vector<powder_ptr>::iterator iter = toAdd.begin(); iter != toAdd.end(); iter++) {
-        addPowder(*iter);
+        if(midFrame) {
+            added = std::get<bool>(futurePowders->emplace(std::make_pair(hashPowder(*iter), *iter))) && added;
+        }
+        else {
+            added = std::get<bool>(powders->emplace(std::make_pair(hashPowder(*iter), *iter))) && added;
+        }
     }
-}
-
-bool Storage::addPowder(powder_ptr toAdd) {
-    bool added = false;
-    if(midFrame) {
-        added = std::get<bool>(futurePowders->emplace(std::make_pair(hashPowder(toAdd), toAdd)));
-    }
-    else {
-        added = std::get<bool>(powders->emplace(std::make_pair(hashPowder(toAdd), toAdd)));
-    }
-
-    if(!added) {
-        //printf("WARNING: Tried to add powder where there already was one\n");
-    }
+    powdersMtx.unlock();
     return added;
 }
 
-void Storage::removePowders(std::vector<powder_ptr> &toRemove) {
-    for(std::vector<powder_ptr>::iterator iter = toRemove.begin(); iter != toRemove.end(); iter++) {
-        removePowder(*iter);
-    }
+bool Storage::addPowder(powder_ptr toAdd) {
+    std::vector<powder_ptr> toAddVec = std::vector<powder_ptr>();
+    toAddVec.push_back(toAdd);
+    return addPowders(toAddVec);
 }
 
-powder_ptr Storage::removePowder(powder_ptr toRemove) {
-    if(midFrame) {
-        futurePowders->erase(hashPowder(toRemove));
+bool Storage::removePowders(std::vector<powder_ptr> &toRemove) {
+    powdersMtx.lock();
+
+    bool removed = true;
+    for(std::vector<powder_ptr>::iterator iter = toRemove.begin(); iter != toRemove.end(); iter++) {
+        try {
+            if(midFrame) {
+                futurePowders->erase(hashPowder(*iter));
+                removed = removed && true;
+            }
+            else {
+                powders->erase(hashPowder(*iter));
+                removed = removed && true;
+            }
+        } catch(std::exception e) {
+            removed = false;
+        }
     }
-    else {
-        powders->erase(hashPowder(toRemove));
-    }
-    return toRemove;
+
+    powdersMtx.unlock();
+    return removed;
+}
+
+bool Storage::removePowder(powder_ptr toRemove) {
+    std::vector<powder_ptr> toRemoveVec = std::vector<powder_ptr>();
+    toRemoveVec.push_back(toRemove);
+    return removePowders(toRemoveVec);
 }
 
 int_powder_map::iterator Storage::getPowderAtLocation(int xPos, int yPos) {
+    powdersMtx.lock();
+    int_powder_map::iterator toReturn;
     // IF there is no powder at the indicated location in the most recent frame OR
     // that powder has already had its physics calculated for the next frame (i.e. it may no longer be in that location) THEN
     // return the powder that will be there in the next frame if there is one
     if(powders->count(hashPosition(xPos, yPos)) == 0 || powders->at(hashPosition(xPos, yPos))->getChanged()) {
-        return futurePowders->find(hashPosition(xPos, yPos));
+        toReturn = futurePowders->find(hashPosition(xPos, yPos));
     }
-    return powders->find(hashPosition(xPos, yPos));
+    else {
+        toReturn = powders->find(hashPosition(xPos, yPos));
+    }
+
+    powdersMtx.unlock();
+    return toReturn;
 }
 
 int Storage::getNumPowders() {

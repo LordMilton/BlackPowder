@@ -2,6 +2,7 @@
 #define STORAGE_H
 
 #include <memory>
+#include <mutex>
 #include <stdio.h>
 #include <unordered_map>
 #include <vector>
@@ -52,6 +53,8 @@ class Storage {
          * List of next frame's powders
          */
         std::unique_ptr<int_powder_map> futurePowders;
+
+        std::mutex powdersMtx;
         
 
     public:
@@ -74,7 +77,7 @@ class Storage {
         /**
          * Adds a list of powders to the simulation
          */
-        void addPowders(std::vector<powder_ptr> &toRemove);
+        bool addPowders(std::vector<powder_ptr> &toRemove);
 
         /**
          * Add a powder to the simulation
@@ -89,7 +92,7 @@ class Storage {
          * To avoid breaking iteration through the list of powders, removal will be prevented when Storage
          * has been told it is in the middle of a frame (physics calculations/drawing/etc.)
          */
-        void removePowders(std::vector<powder_ptr> &toRemove);
+        bool removePowders(std::vector<powder_ptr> &toRemove);
 
         /**
          * Remove a powder from the simulation
@@ -97,10 +100,10 @@ class Storage {
          * To avoid breaking iteration through the list of powders, removal will be prevented when Storage
          * has been told it is in the middle of a frame (physics calculations/drawing/etc.)
          * 
-         * @return The powder removed
+         * @return True if the powder was removed, else false
          * @throws out_of_range exception if provided powder doesn't exist
          */
-        powder_ptr removePowder(powder_ptr toRemove);
+        bool removePowder(powder_ptr toRemove);
 
         /**
          * Retrieves the powder at the given location
