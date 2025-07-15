@@ -1,8 +1,11 @@
 #include <chrono>
 #include <cmath>
+#include <latch>
 #include <memory>
 #include <stdexcept>
 #include <thread>
+
+#include "ThreadPool.h"
 
 #include "GameMaster.h"
 #include "Fire.h"
@@ -34,7 +37,8 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
         drawToolRadius(1),
         lmbPressed(false),
         rmbPressed(false),
-        lastFrameTime(0) {
+        lastFrameTime(0),
+        threadPool(ThreadPool(2)) {
     this->windowWidth = windowWidth;
     this->windowHeight = windowHeight;
     powderStorage = std::make_shared<Storage>();
@@ -53,6 +57,7 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
     powderSpaceWidth = this->windowWidth;
     powderSpaceHeight = this->windowHeight - selectionMenu->getMenuDimensions().second;
 
+    
     for(int i = 1; i <= powderSpaceHeight; i++) {
         for(int j = 1; j <= powderSpaceWidth; j++) {
             powderStorage->addPowder(std::make_shared<Powder::Wall>(j, i));
@@ -61,9 +66,17 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
             }
         }
     }
+        
 }
 
 GameMaster::~GameMaster() {}
+
+void GameMaster::advancePowderInSeparateThread(powder_ptr toAdvance, std::latch &latch) {
+    toAdvance->advanceOneFrame(advancePowderFrame, powderStorage);
+    latch.count_down();
+    numberThroughLatch++;
+    //printf("%d threads through latch\n", numberThroughLatch);
+}
 
 void GameMaster::run(piksel::Graphics& g) {
     // Create/delete new powders via user
@@ -126,16 +139,19 @@ void GameMaster::run(piksel::Graphics& g) {
     int_powder_map::iterator endIter = powderIterators.second;
 
     // Do physics work
+    std::latch physicsThreadLatch(powderStorage->getNumPowders());
+    numberThroughLatch = 0;
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
         powder_ptr curPowder = iter->second;
-        curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
+        threadPool.queueJob([this, curPowder, &physicsThreadLatch](){this->advancePowderInSeparateThread(curPowder, physicsThreadLatch);});
+        //curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
     }
+    physicsThreadLatch.wait();
 
     // DRAWING DRAWING DRAWING
     
-    // Delay to max fps at 30
-    // TODO Not a busy wait, but is whacking out the fps
-    std::this_thread::sleep_for(std::chrono::milliseconds(int(fmax(0, g.millis() - lastFrameTime))));
+    // Delay to max fps at ~30
+    //std::this_thread::sleep_for(std::chrono::milliseconds(int(fmax(0, 1000/35 - (g.millis() - lastFrameTime)))));
 
     // Draw all the powders
     for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {

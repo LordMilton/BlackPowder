@@ -1,8 +1,11 @@
 #ifndef GAMEMASTER_H
 #define GAMEMASTER_H
 
+#include <latch>
 #include <cstdlib>
 #include <memory>
+
+#include "ThreadPool.h"
 
 #include "piksel/baseapp.hpp"
 #include "piksel/graphics.hpp"
@@ -12,6 +15,8 @@
 
 class GameMaster {
     private:
+        ThreadPool threadPool;
+        
         std::unique_ptr<Menu> selectionMenu;
         /**
          * Stores all necessary data about powders currently in the simulation
@@ -50,15 +55,19 @@ class GameMaster {
         void mouseButtonChanged(int button, bool pressed);
 
         /**
-         * Draws the selection menu
-         */
-        std::pair<int,int> drawMenu();
-
-        /**
          * The last time (w/r/t the time the simulation started) that a frame was drawn
          * Needed for tracking/limiting fps
          */
         int lastFrameTime;
+
+        /**
+         * Draws the selection menu
+         */
+        std::pair<int,int> drawMenu();
+
+        void advancePowderInSeparateThread(powder_ptr toAdvance, std::latch &latch);
+
+        int numberThroughLatch;
 
     public:
         GameMaster(int windowHeight, int windowWidth);
