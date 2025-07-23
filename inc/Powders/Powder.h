@@ -22,7 +22,7 @@ namespace Powder
             };
 
         protected:
-            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0);
+            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0, bool liquid = false);
 
             /**
              * Table for translating the powder type into a name string
@@ -45,6 +45,10 @@ namespace Powder
              */
             const glm::vec4 color;
             /**
+             * True if the powder is a liquid
+             */
+            const bool liquid;
+            /**
              * Type of the powder
              * 
              * The type is the same for all instances of a powder, but needs to be accessible by things that don't know the powder type so shouldn't be static
@@ -58,6 +62,14 @@ namespace Powder
              * Y coordinate
              */
             int y;
+            /**
+             * Horizontal Velocity
+             */
+            double xVel;
+            /**
+             * Vertical velocity
+             */
+            double yVel;
             /**
              * Half life of this powder, or how many frames on average it should exist before disappearing
              * If set to 0, this powder does not have a half life and can exist indefinitely
@@ -80,6 +92,11 @@ namespace Powder
              * Returns position as [x,y]
              */
             std::pair<int,int> getPosition();
+            std::pair<double,double> getVelocities();
+            /**
+             * "Combines" the velocities of this object with the velocities provided
+             */
+            void combineVelocities(std::pair<double,double> velocities);
             void setChanged();
             bool getChanged();
             std::string getName();
@@ -99,7 +116,7 @@ namespace Powder
              * 
              * @return true if powder was advanced, false otherwise
              */
-            bool advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage);
+            bool advanceOneFrame(std::function<std::pair<int,int>(int,int,double,double)> advanceFun, std::shared_ptr<Storage> powderStorage);
 
             /**
              * Shift the powder to a new location.
