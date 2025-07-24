@@ -10,19 +10,17 @@
 #include "Wall.h"
 #include "Water.h"
 
-std::pair<int,int> advancePowderFrame(int x, int y, bool gravity, float density) {
-    std::pair<int,int> position = std::make_pair(x,y);
-    if(gravity) {
-        int rng = pow(rand()%10, 2);
-        int yMove = density >= 0 ? 1 : -1;
-        if(rng < abs(density*100)) {
-            position.second = y + yMove;
-        }
-        else {
-            position.first = x + ((rand() % 3) - 1);
-        }
-    }
+std::pair<int,int> advancePowderFrame(int x, int y, double xVelocity, double yVelocity) {
+    const int MAX_RNG = 100;
+    int rngX = rand() % MAX_RNG;
+    int rngY = rand() % MAX_RNG;
+    // TODO Change location directly by velocity (instead of via whole numbers and rng)
+    //    Requires handling position as decimal value (else velocities <.5 will never let a powder move)
+    //    Requires either preventing velocities from being >1 or handling determining encounters at end location and in-between locations
+    x += rngX < (abs(xVelocity) * MAX_RNG) ? (xVelocity / abs(xVelocity)) : 0;
+    y += rngY < (abs(yVelocity) * MAX_RNG) ? (yVelocity / abs(yVelocity)) : 0;
 
+    std::pair<int,int> position = std::make_pair(x,y);
     return position;
 }
 

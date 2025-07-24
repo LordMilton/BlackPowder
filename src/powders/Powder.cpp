@@ -9,19 +9,23 @@
 
 std::string Powder::Powder::powderTypeNameList[] = {"Fire", "Sand", "Wall", "Water"};
 
-Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife) :
+Powder::Powder::Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife, bool liquid) :
                     x(xPos),
                     y(yPos),
+                    xVel(0),
+                    yVel(0),
                     gravity(gravity),
                     density(density),
                     color(color),
                     powderType(powderType),
                     changedThisFrame(false),
-                    halfLife(halfLife) {}
+                    halfLife(halfLife),
+                    liquid(liquid) {}
 
-bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bool,float)> advanceFun, std::shared_ptr<Storage> powderStorage) {
+bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,double,double)> advanceFun, std::shared_ptr<Storage> powderStorage) {
     bool advanced = false;
 
+    // Deal with half life first, if it disappears then there's nothing else to do
     if(halfLife >= 1) {
         int rngRange = 10000;
         int rng = rand()%rngRange;
@@ -31,15 +35,54 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
             this->setChanged();
         }
     }
-    
+
+    bool forceHorizontalMvmt = false;
+    if(liquid) {
+        std::shared_ptr<Powder> below = NULL;
+        if(gravity && density != 0) {
+            powderStorage->getPowderAtLocation(x, y + (density / abs(density))
+    );
+            int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(x, y + (density / abs(density)));
+            if(mapPointer != powderStorage->getPowdersIterators().second) {
+                below = mapPointer->second;
+            }
+        }
+        bool canMoveVertically = true;
+        if(below != NULL && (!below->getGravity() || below->getDensity() >= this->density)) {
+            canMoveVertically = false;
+        }
+        forceHorizontalMvmt = !canMoveVertically;
+    }
+
+    // Update velocities
+    if(gravity) {
+        const double GRAVITY = 1.0;
+        const double MAX_XWOBBLE = .1;
+        double xWobble = ((rand() % 3) - 1) * MAX_XWOBBLE; //TODO change this negatively w/r/t density
+        if(!forceHorizontalMvmt) {
+            this->combineVelocities(std::make_pair(xWobble + xVel/2.0, GRAVITY * (density / abs(density))));
+        }
+        else {
+            this->combineVelocities(std::make_pair((xWobble / MAX_XWOBBLE) + xVel / 2.0, yVel));
+        }
+    }
+    else {
+        yVel = 0;
+        xVel = 0;
+    }
+
     if(!changedThisFrame) {
-        std::pair<int,int> newPos = advanceFun(x, y, gravity, density);
+        // Determine new position of this powder
+        std::pair<int,int> newPos = advanceFun(x, y, xVel, yVel);
         std::shared_ptr<Powder> displacedPowder = NULL;
 
+        // Try to move this powder, deal with displacement/interaction of powder in the new position
         bool specialInteractionOccurred = false;
         int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(newPos.first,newPos.second);
         if(mapPointer != powderStorage->getPowdersIterators().second) {
             std::shared_ptr<Powder> overlap = mapPointer->second;
+            overlap->combineVelocities(std::make_pair(this->xVel, this->yVel));
+            this->combineVelocities(overlap->getVelocities());
             specialInteractionOccurred = Interactions::interact(powderStorage->getPowderAtLocation(x,y)->second, overlap, true, powderStorage);
             if(!specialInteractionOccurred) {
                 if(!overlap->getGravity() || this->density <= overlap->getDensity()) {
@@ -59,6 +102,7 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,bo
             y = newPos.second;
         }
         
+        // Add changed powders to the next frame's powder list
         if(!specialInteractionOccurred) {
             // This isn't obviously less efficient than iterating to reset the changed flag
             setChanged();
@@ -110,6 +154,23 @@ std::string Powder::Powder::getName() {
 
 Powder::Powder::PowderType Powder::Powder::getPowderType() {
     return powderType;
+}
+
+std::pair<double,double> Powder::Powder::getVelocities() {
+    return(std::make_pair(xVel, yVel));
+}
+
+void Powder::Powder::combineVelocities(std::pair<double,double> velocities) {
+    if(gravity) {
+        xVel = (xVel + velocities.first) / 2.0;
+        xVel = xVel * abs(density) * 2;
+        yVel = (yVel + velocities.second) / 2.0;
+        yVel = yVel * abs(density) * 2;
+    }
+    else {
+        xVel = 0;
+        yVel = 0;
+    }
 }
 
 /**

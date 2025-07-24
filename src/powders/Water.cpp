@@ -6,7 +6,7 @@
 #include "Powder.h"
 
 Powder::Water::Water(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, true, .25f, glm::vec4(0.102f, 0.102f, 0.969f, 1.0f), PowderType::water) {
+        Powder::Powder(xPos, yPos, true, .4f, glm::vec4(0.102f, 0.102f, 0.969f, 1.0f), PowderType::water, 0, true) {
 }
 
 Powder::Water::~Water() {}
