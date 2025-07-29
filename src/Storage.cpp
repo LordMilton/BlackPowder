@@ -1,10 +1,19 @@
+#include <chrono>
+#include <iostream>
+
 #include "Storage.h"
 #include "Powder.h"
 
-Storage::Storage() {
-    midFrame = false;
-    powders = std::make_unique<int_powder_map>();
-    futurePowders = std::make_unique<int_powder_map>();
+Storage::Storage(int windowSizeX, int windowSizeY) :
+        trueWindowSizeX(windowSizeX),
+        trueWindowSizeY(windowSizeY),
+        midFrame(false),
+        numPowders(0) {
+    powders = std::make_unique<std::array<powder_ptr, MAX_PIXEL_COUNT>>();
+    for(int i = 0; i < MAX_PIXEL_COUNT; i++) {
+        printf("%s", (*powders)[i]);
+    }
+    futurePowders = std::make_unique<std::array<powder_ptr, MAX_PIXEL_COUNT>>();
 }
 
 Storage::~Storage() {
@@ -16,11 +25,15 @@ void Storage::startFrameHandling() {
 
 void Storage::endFrameHandling() {
     midFrame = false;
-    powders = std::make_unique<int_powder_map>(*futurePowders);
-    futurePowders = std::make_unique<int_powder_map>();
+    powders.swap(futurePowders);
+    for(int i = 0; i < trueWindowSizeX; i++) {
+        for(int j = 0; j < trueWindowSizeY; j++) {
+            (*futurePowders)[hashPosition(i,j)] = NULL;
+        }
+    }
 }
 
-std::pair<int_powder_map::iterator, int_powder_map::iterator> Storage::getPowdersIterators() {
+std::pair<std::array<powder_ptr, Storage::MAX_PIXEL_COUNT>::iterator, std::array<powder_ptr, Storage::MAX_PIXEL_COUNT>::iterator> Storage::getPowdersIterators() {
     return std::make_pair(powders->begin(), powders->end());
 }
 
@@ -32,15 +45,30 @@ void Storage::addPowders(std::vector<powder_ptr> &toAdd) {
 
 bool Storage::addPowder(powder_ptr toAdd) {
     bool added = false;
-    if(midFrame) {
-        added = std::get<bool>(futurePowders->emplace(std::make_pair(hashPowder(toAdd), toAdd)));
+    std::pair<int,int> position = toAdd->getPosition();
+    if(position.first < 0 || position.first >= trueWindowSizeX ||
+       position.second < 0 || position.second >= trueWindowSizeY) {
     }
     else {
-        added = std::get<bool>(powders->emplace(std::make_pair(hashPowder(toAdd), toAdd)));
-    }
+        size_t powderHash = hashPowder(toAdd);
+        if(midFrame) {
+            if((*futurePowders)[powderHash] == NULL) {
+                (*futurePowders)[powderHash] = toAdd;
+                added = true;
+            }
+        }
+        else {
+            if((*powders)[powderHash] == NULL) {
+                (*powders)[powderHash] = toAdd;
+                added = true;
+            }
+        }
 
-    if(!added) {
-        //printf("WARNING: Tried to add powder where there already was one\n");
+        if(!added) {
+            //printf("WARNING: Tried to add powder where there already was one\n");
+        } else {
+            numPowders++;
+        }
     }
     return added;
 }
@@ -53,26 +81,36 @@ void Storage::removePowders(std::vector<powder_ptr> &toRemove) {
 
 powder_ptr Storage::removePowder(powder_ptr toRemove) {
     if(midFrame) {
-        futurePowders->erase(hashPowder(toRemove));
+        (*futurePowders)[hashPowder(toRemove)] = 0;
     }
     else {
-        powders->erase(hashPowder(toRemove));
+        (*powders)[hashPowder(toRemove)] = 0;
     }
+    numPowders--; //Trusting that powder given exists in the sim
     return toRemove;
 }
 
-int_powder_map::iterator Storage::getPowderAtLocation(int xPos, int yPos) {
+bool Storage::getPowderAtLocation(int xPos, int yPos, powder_ptr &retVal) {
     // IF there is no powder at the indicated location in the most recent frame OR
     // that powder has already had its physics calculated for the next frame (i.e. it may no longer be in that location) THEN
     // return the powder that will be there in the next frame if there is one
-    if(powders->count(hashPosition(xPos, yPos)) == 0 || powders->at(hashPosition(xPos, yPos))->getChanged()) {
-        return futurePowders->find(hashPosition(xPos, yPos));
+    retVal = NULL;
+    if(xPos < 0 || xPos >= trueWindowSizeX ||
+       yPos < 0 || yPos >= trueWindowSizeY) {
     }
-    return powders->find(hashPosition(xPos, yPos));
+    else {
+        if((*powders)[hashPosition(xPos, yPos)] == 0 || (*powders)[hashPosition(xPos, yPos)]->getChanged()) {
+            retVal = (*futurePowders)[hashPosition(xPos, yPos)];
+        }
+        else {
+            retVal = (*powders)[hashPosition(xPos, yPos)];
+        }
+    }
+    return retVal != NULL;
 }
 
 int Storage::getNumPowders() {
-    return powders->size();
+    return numPowders;
 }
 
 size_t Storage::hashPowder(powder_ptr powder) {
@@ -81,5 +119,5 @@ size_t Storage::hashPowder(powder_ptr powder) {
 }
 
 size_t Storage::hashPosition(int xPos, int yPos) {
-    return(xPos*MAX_X_POS + yPos);
+    return(xPos*trueWindowSizeX + yPos);
 }

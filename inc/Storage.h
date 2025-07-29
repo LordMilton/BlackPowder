@@ -1,6 +1,7 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
+#include <array>
 #include <memory>
 #include <stdio.h>
 #include <unordered_map>
@@ -12,17 +13,18 @@ namespace Powder {
 }
 
 typedef std::shared_ptr<Powder::Powder> powder_ptr;
-typedef std::unordered_map<size_t, std::shared_ptr<Powder::Powder>> int_powder_map;
 
 class Storage {
+    public:
+        static const int MAX_WINDOW_SIZE_X = 1920;
+        static const int MAX_WINDOW_SIZE_Y = 1080;
+        static const int MAX_PIXEL_COUNT = MAX_WINDOW_SIZE_X * MAX_WINDOW_SIZE_Y;
+
     private:
-        /**
-         * The maximum x position of any powder, used for creating the index of powders
-         * in the map
-         * 
-         * TODO make this dynamic to be the max width of the window
-         */
-        const int MAX_X_POS = 4000;
+        int trueWindowSizeX;
+        int trueWindowSizeY;
+
+        int numPowders;
 
         /**
          * Indicates that the simulation is in the middle of producing the next frame
@@ -46,16 +48,18 @@ class Storage {
         /**
          * List of all present powders
          */
-        std::unique_ptr<int_powder_map> powders;
+        std::unique_ptr<std::array<powder_ptr, MAX_PIXEL_COUNT>> powders;
 
         /**
          * List of next frame's powders
          */
-        std::unique_ptr<int_powder_map> futurePowders;
+        std::unique_ptr<std::array<powder_ptr, MAX_PIXEL_COUNT>> futurePowders;
         
 
     public:
-        Storage();
+        typedef std::array<powder_ptr, MAX_PIXEL_COUNT> powder_array;
+
+        Storage(int windowSizeX, int windowSizeY);
         ~Storage();
 
         /**
@@ -69,7 +73,7 @@ class Storage {
          */
         void endFrameHandling();
         
-        std::pair<int_powder_map::iterator, int_powder_map::iterator> getPowdersIterators();
+        std::pair<powder_array::iterator, powder_array::iterator> getPowdersIterators();
 
         /**
          * Adds a list of powders to the simulation
@@ -105,7 +109,7 @@ class Storage {
         /**
          * Retrieves the powder at the given location
          */
-        int_powder_map::iterator getPowderAtLocation(int xPos, int yPos);
+        bool getPowderAtLocation(int xPos, int yPos, powder_ptr &retVal);
 
         int getNumPowders();
 };

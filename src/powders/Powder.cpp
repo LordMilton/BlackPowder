@@ -31,24 +31,26 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,do
         int rng = rand()%rngRange;
         double deleteChance = rngRange * (1.0 / halfLife);
         if(rng <= deleteChance) {
-            powderStorage->removePowder(powderStorage->getPowderAtLocation(this->x,this->y)->second);
+            powder_ptr toRemove;
+            bool powderExists = powderStorage->getPowderAtLocation(this->x,this->y, toRemove);
+            if(powderExists) {
+                powderStorage->removePowder(toRemove);
+            } else {
+                printf("Something went wrong while trying to remove this powder");
+            }
             this->setChanged();
         }
     }
 
     bool forceHorizontalMvmt = false;
     if(liquid) {
-        std::shared_ptr<Powder> below = NULL;
+        powder_ptr below = NULL;
+        bool isPowderBelow = false;
         if(gravity && density != 0) {
-            powderStorage->getPowderAtLocation(x, y + (density / abs(density))
-    );
-            int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(x, y + (density / abs(density)));
-            if(mapPointer != powderStorage->getPowdersIterators().second) {
-                below = mapPointer->second;
-            }
+            isPowderBelow = powderStorage->getPowderAtLocation(x, y + (density / abs(density)), below);
         }
         bool canMoveVertically = true;
-        if(below != NULL && (!below->getGravity() || below->getDensity() >= this->density)) {
+        if(isPowderBelow && (!below->getGravity() || below->getDensity() >= this->density)) {
             canMoveVertically = false;
         }
         forceHorizontalMvmt = !canMoveVertically;
@@ -74,24 +76,25 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,do
     if(!changedThisFrame) {
         // Determine new position of this powder
         std::pair<int,int> newPos = advanceFun(x, y, xVel, yVel);
-        std::shared_ptr<Powder> displacedPowder = NULL;
+        powder_ptr displacedPowder = NULL;
 
         // Try to move this powder, deal with displacement/interaction of powder in the new position
         bool specialInteractionOccurred = false;
-        int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(newPos.first,newPos.second);
-        if(mapPointer != powderStorage->getPowdersIterators().second) {
-            std::shared_ptr<Powder> overlap = mapPointer->second;
-            overlap->combineVelocities(std::make_pair(this->xVel, this->yVel));
-            this->combineVelocities(overlap->getVelocities());
-            specialInteractionOccurred = Interactions::interact(powderStorage->getPowderAtLocation(x,y)->second, overlap, true, powderStorage);
+        bool isDisplacingPowder = powderStorage->getPowderAtLocation(newPos.first, newPos.second, displacedPowder);
+        powder_ptr thisPowderShared;
+        powderStorage->getPowderAtLocation(x, y, thisPowderShared);
+        if(isDisplacingPowder) {
+            displacedPowder->combineVelocities(std::make_pair(this->xVel, this->yVel));
+            this->combineVelocities(displacedPowder->getVelocities());
+            specialInteractionOccurred = Interactions::interact(thisPowderShared, displacedPowder, true, powderStorage);
             if(!specialInteractionOccurred) {
-                if(!overlap->getGravity() || this->density <= overlap->getDensity()) {
+                if(!displacedPowder->getGravity() || this->density <= displacedPowder->getDensity()) {
                     newPos = this->getPosition();
+                    isDisplacingPowder = false;
                 }
                 else {
-                    displacedPowder = overlap;
-                    powderStorage->removePowder(overlap);
-                    overlap->shiftPowder(this->x, this->y);
+                    powderStorage->removePowder(displacedPowder);
+                    displacedPowder->shiftPowder(this->x, this->y);
                     x = newPos.first;
                     y = newPos.second;
                 }
@@ -106,9 +109,10 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,do
         if(!specialInteractionOccurred) {
             // This isn't obviously less efficient than iterating to reset the changed flag
             setChanged();
+            powderStorage->removePowder(thisPowderShared);
             std::shared_ptr<Powder> newPowder = this->copyPowder(newPos.first, newPos.second);
             powderStorage->addPowder(newPowder);
-            if(displacedPowder != NULL)
+            if(isDisplacingPowder)
                 powderStorage->addPowder(displacedPowder->copyPowder());
         }
 
