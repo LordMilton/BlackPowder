@@ -9,7 +9,8 @@ namespace Powder {
     class Wall : public Powder {
 
         public:
-            Wall(int x, int y);
+            Wall(int curFrame, int x, int y);
+            Wall(int curFrame, int x, int y, int startingXVelocity, int startingYVelocity);
             ~Wall();
 
             powder_ptr copyPowder();

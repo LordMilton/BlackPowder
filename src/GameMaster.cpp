@@ -27,7 +27,6 @@ std::pair<int,int> advancePowderFrame(int x, int y, double xVelocity, double yVe
 GameMaster::GameMaster(int windowWidth, int windowHeight) :
         windowWidth(windowWidth),
         windowHeight(windowHeight),
-        powderStorage(std::make_shared<Storage>()),
         curMouseLocation(std::make_pair(0,0)),
         drawToolRadius(1),
         lmbPressed(false),
@@ -35,27 +34,28 @@ GameMaster::GameMaster(int windowWidth, int windowHeight) :
         lastFrameTime(0) {
     this->windowWidth = windowWidth;
     this->windowHeight = windowHeight;
-    powderStorage = std::make_shared<Storage>();
     curMouseLocation = std::make_pair(0,0);
     lmbPressed = false;
     rmbPressed = false;
 
     std::shared_ptr<std::vector<powder_ptr>> menuPowders = std::shared_ptr<std::vector<powder_ptr>>(new std::vector<powder_ptr>());
-    menuPowders->push_back(std::shared_ptr<Powder::Fire>(new Powder::Fire(0,0)));
-    menuPowders->push_back(std::shared_ptr<Powder::Sand>(new Powder::Sand(0,0)));
-    menuPowders->push_back(std::shared_ptr<Powder::Water>(new Powder::Water(0,0)));
-    menuPowders->push_back(std::shared_ptr<Powder::Wall>(new Powder::Wall(0,0)));
+    menuPowders->push_back(std::shared_ptr<Powder::Fire>(new Powder::Fire(0,0,0)));
+    menuPowders->push_back(std::shared_ptr<Powder::Sand>(new Powder::Sand(0,0,0)));
+    menuPowders->push_back(std::shared_ptr<Powder::Water>(new Powder::Water(0,0,0)));
+    menuPowders->push_back(std::shared_ptr<Powder::Wall>(new Powder::Wall(0,0,0)));
     selectionMenu = std::unique_ptr<Menu>(new Menu(this->windowWidth, this->windowHeight, menuPowders));
     menuPowders.reset();
     
     powderSpaceWidth = this->windowWidth;
     powderSpaceHeight = this->windowHeight - selectionMenu->getMenuDimensions().second;
 
-    for(int i = 1; i <= powderSpaceHeight; i++) {
+    powderStorage = std::make_shared<Storage>(powderSpaceWidth, powderSpaceHeight);
+
+    for(int i = 1; i <= powderSpaceHeight-1; i++) {
         for(int j = 1; j <= powderSpaceWidth; j++) {
-            powderStorage->addPowder(std::make_shared<Powder::Wall>(j, i));
-            if(i != 1 && i != powderSpaceHeight) {
-                j += powderSpaceWidth-2;
+            powderStorage->addPowder(std::make_shared<Powder::Wall>(powderStorage->getCurFrameNum(), j, i));
+            if(i != 1 && i != powderSpaceHeight-1) {
+                j += powderSpaceWidth-3;
             }
         }
     }
@@ -65,6 +65,7 @@ GameMaster::~GameMaster() {}
 
 void GameMaster::run(piksel::Graphics& g) {
     // Create/delete new powders via user
+    int start = g.millis();
     if(lmbPressed) {
         if(curMouseLocation.second <= powderSpaceHeight) {
             // TODO Make a Factory for Powders to do this logic
@@ -74,16 +75,16 @@ void GameMaster::run(piksel::Graphics& g) {
                 int verticalPixels = drawToolRadius * (cos(percentAcrossCircle * .5 * 3.14f));
                 for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
                     if(selectionMenu->getCurrentSelection() == "Fire") {
-                        toAdd.push_back(std::make_shared<Powder::Fire>(xPos,yPos));
+                        toAdd.push_back(std::make_shared<Powder::Fire>(powderStorage->getCurFrameNum(), xPos, yPos));
                     }
                     else if(selectionMenu->getCurrentSelection() == "Sand") {
-                        toAdd.push_back(std::make_shared<Powder::Sand>(xPos,yPos));
+                        toAdd.push_back(std::make_shared<Powder::Sand>(powderStorage->getCurFrameNum(), xPos, yPos));
                     }
                     else if(selectionMenu->getCurrentSelection() == "Wall") {
-                        toAdd.push_back(std::make_shared<Powder::Wall>(xPos,yPos));
+                        toAdd.push_back(std::make_shared<Powder::Wall>(powderStorage->getCurFrameNum(), xPos, yPos));
                     }
                     else if(selectionMenu->getCurrentSelection() == "Water") {
-                        toAdd.push_back(std::make_shared<Powder::Water>(xPos,yPos));
+                        toAdd.push_back(std::make_shared<Powder::Water>(powderStorage->getCurFrameNum(), xPos, yPos));
                     }
                     else {
                         printf("WARNING: Selection menu indicated a powder that we couldn't make: %s\n", selectionMenu->getCurrentSelection().c_str());
@@ -99,35 +100,47 @@ void GameMaster::run(piksel::Graphics& g) {
     }
     else if(rmbPressed) {
         if(curMouseLocation.second <= powderSpaceHeight) {
-            std::vector<powder_ptr> toRemove = std::vector<powder_ptr>();
+            std::vector<powder_ptr> removals = std::vector<powder_ptr>();
             for(int xPos = curMouseLocation.first - (drawToolRadius-1); xPos <= curMouseLocation.first + (drawToolRadius-1); xPos++) {
                 float percentAcrossCircle = (abs(xPos - curMouseLocation.first) / (drawToolRadius*1.0f));
                 int verticalPixels = drawToolRadius * (cos(percentAcrossCircle * .5 * 3.14f));
                 for(int yPos = curMouseLocation.second - verticalPixels; yPos <= curMouseLocation.second + verticalPixels; yPos++) {
-                    int_powder_map::iterator mapPointer = powderStorage->getPowderAtLocation(xPos,yPos);
-                    if(mapPointer != powderStorage->getPowdersIterators().second) {
-                        toRemove.push_back(mapPointer->second);
+                    powder_ptr toRemove;
+                    bool powderExists = powderStorage->getPowderAtLocation(xPos, yPos, toRemove);
+                    if(powderExists) {
+                        removals.push_back(toRemove);
                     }
                 }
             }
-            powderStorage->removePowders(toRemove);
+            powderStorage->removePowders(removals);
         }
     }
+    int end = g.millis();
+    //printf("User input took %d milliseconds\n", end - start);
     
+    start = g.millis();
     powderStorage->startFrameHandling();
+    end = g.millis();
+    //printf("Start of frame handling took %d milliseconds\n", end - start);
 
     // PHYSICS PHYSICS PHYSICS
 
     // Handle normal frame stuff
-    std::pair<int_powder_map::iterator, int_powder_map::iterator> powderIterators = powderStorage->getPowdersIterators();
-    int_powder_map::iterator beginIter = powderIterators.first;
-    int_powder_map::iterator endIter = powderIterators.second;
+    std::pair<Storage::powder_array::iterator, Storage::powder_array::iterator> powderIterators = powderStorage->getPowdersIterators();
+    Storage::powder_array::iterator beginIter = powderIterators.first;
+    Storage::powder_array::iterator endIter = powderIterators.second;
 
+    start = g.millis();
     // Do physics work
-    for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
-        powder_ptr curPowder = iter->second;
-        curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
+    for(Storage::powder_array::iterator iter = beginIter; iter != endIter; iter++) {
+        powder_ptr curPowder = *iter;
+        if(curPowder != NULL &&
+            (curPowder->validLastFrame(powderStorage->getCurFrameNum()))) {
+            curPowder->advanceOneFrame(advancePowderFrame, powderStorage);
+        }
     }
+    end = g.millis();
+    //printf("Physics took %d milliseconds\n", end - start);
 
     // DRAWING DRAWING DRAWING
     
@@ -136,15 +149,19 @@ void GameMaster::run(piksel::Graphics& g) {
     std::this_thread::sleep_for(std::chrono::milliseconds(int(fmax(0, g.millis() - lastFrameTime))));
 
     // Draw all the powders
-    for(int_powder_map::iterator iter = beginIter; iter != endIter; iter++) {
-        std::pair<int,int> pos = iter->second->getPosition();
-        if(pos.first < 1 || pos.first > this->powderSpaceWidth ||
-            pos.second < 1 || pos.second > this->powderSpaceHeight) {
-            powderStorage->removePowder(iter->second);
-        } else {
-            iter->second->draw(g);
+    start = g.millis();
+    for(Storage::powder_array::iterator iter = beginIter; iter != endIter; iter++) {
+        powder_ptr curPowder = *iter;
+        if(curPowder != NULL &&
+            // This does actually draw the current powders even though it's iterating through the previous frame's powders
+            //    due to how we choose to update the last frame's powders alongside their next frame counterparts
+            curPowder->validThisFrame(powderStorage->getCurFrameNum())) {
+            std::pair<int,int> pos = curPowder->getPosition();
+            curPowder->draw(g);
         }
     }
+    end = g.millis();
+    //printf("Drawing took %d milliseconds\n", end - start);
 
     // Draw the draw tool
     if(curMouseLocation.second <= powderSpaceHeight) {
@@ -166,7 +183,10 @@ void GameMaster::run(piksel::Graphics& g) {
 
     lastFrameTime = g.millis();
 
+    start = g.millis();
     powderStorage->endFrameHandling();
+    end = g.millis();
+    //printf("End of frame handling took %d milliseconds\n", end - start);
 }
 
 void GameMaster::mouseMoved(int x, int y) {

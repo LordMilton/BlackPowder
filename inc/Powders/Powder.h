@@ -22,7 +22,7 @@ namespace Powder
             };
 
         protected:
-            Powder(int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0, bool liquid = false);
+            Powder(int curFrame, int xPos, int yPos, int startingXVelocity, int startingYVelocity, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0, bool liquid = false);
 
             /**
              * Table for translating the powder type into a name string
@@ -77,9 +77,10 @@ namespace Powder
             int halfLife;
 
             /**
-             * Whether this powder has moved this frame, whether by it's own physics or being displaced
+             * The last frame this powder was updated
+             *    Compared to a boolean, this allows invalidation without having to reupdate the powder
              */
-            bool changedThisFrame = false;
+            int frameLastChanged;
         
         public:
 
@@ -97,9 +98,21 @@ namespace Powder
              * "Combines" the velocities of this object with the velocities provided
              */
             void combineVelocities(std::pair<double,double> velocities);
-            void setChanged();
-            bool getChanged();
+            /**
+             * Whether this powder is valid (was last updated) this frame
+             */
+            bool validThisFrame(int curFrame);
+            /**
+             * Whether this powder was valid (was last updated) in the previous frame
+             */
+            bool validLastFrame(int curFrame);
+            /**
+             * Get the stringified name of this powder
+             */
             std::string getName();
+            /**
+             * Get the enumerated type of this powder (far more efficient for comparisons)
+             */
             PowderType getPowderType();
 
             /**
@@ -121,12 +134,17 @@ namespace Powder
             /**
              * Shift the powder to a new location.
              * Lets other powders displace this one due to their own physics
+             * 
+             * @param newYPos The new X position of the powder
+             * @param newYPos The new Y position of the powder
+             * @param curFrame The current frame that, once shifted, the powder is considered valid for
              */
-            void shiftPowder(int newXPos, int newYPos);
+            void shiftPowder(int newXPos, int newYPos, int curFrame);
 
+            /** 
+             * Creates another identical copy of this powder
+             */
             virtual std::shared_ptr<Powder> copyPowder() = 0;
-
-            virtual std::shared_ptr<Powder> copyPowder(int newXPos, int newYPos) = 0;
     };
 }
 
