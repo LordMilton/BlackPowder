@@ -5,8 +5,8 @@
 #include "Storage.h"
 #include "Powder.h"
 
-Powder::Sand::Sand(int xPos, int yPos) : 
-        Powder::Powder(xPos, yPos, true, .75f, glm::vec4(1.0f,.984f,0.0f,1.0f), PowderType::sand) {
+Powder::Sand::Sand(int curFrame, int xPos, int yPos) : 
+        Powder::Powder(curFrame, xPos, yPos, true, .75f, glm::vec4(1.0f,.984f,0.0f,1.0f), PowderType::sand) {
 }
 
 Powder::Sand::~Sand() {}
@@ -16,5 +16,5 @@ powder_ptr Powder::Sand::copyPowder() {
 }
 
 powder_ptr Powder::Sand::copyPowder(int newXPos, int newYPos) {
-    return(std::make_shared<Sand>(newXPos, newYPos));
+    return(std::make_shared<Sand>(this->frameLastChanged, newXPos, newYPos));
 }

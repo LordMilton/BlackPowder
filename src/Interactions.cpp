@@ -35,11 +35,9 @@ bool Interactions::fireWaterInteract(std::shared_ptr<Powder::Powder> powder1, st
     std::pair<int,int> powder2Pos = powder2->getPosition();
     std::pair<int,int> contactPos = firstPowderMoved ? powder2Pos : powder1Pos;
 
-    powder2->shiftPowder(contactPos.first, contactPos.second);
-    powder_ptr newPowder2 = powder2->copyPowder(contactPos.first, contactPos.second);
-
-    powder1->shiftPowder(contactPos.first, contactPos.second);
-    powderStorage->addPowder(newPowder2);
+    powder2->shiftPowder(contactPos.first, contactPos.second, powderStorage->getCurFrameNum());
+    powder1->shiftPowder(contactPos.first, contactPos.second, powderStorage->getCurFrameNum());
+    powderStorage->addPowder(powder2->copyPowder());
 
     return true;
 }

@@ -9,7 +9,7 @@ namespace Powder {
     class Sand : public Powder {
 
         public:
-            Sand(int x, int y);
+            Sand(int curFrame, int x, int y);
             ~Sand();
 
             powder_ptr copyPowder();

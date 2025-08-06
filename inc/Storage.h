@@ -4,7 +4,6 @@
 #include <array>
 #include <memory>
 #include <stdio.h>
-#include <unordered_map>
 #include <vector>
 
 // Forward declare to break cyclical includes Powder <-> Storage
@@ -16,14 +15,19 @@ typedef std::shared_ptr<Powder::Powder> powder_ptr;
 
 class Storage {
     public:
-        static const int MAX_WINDOW_SIZE_X = 1920;
-        static const int MAX_WINDOW_SIZE_Y = 1080;
+        // Max sizes of the window for the statically sized powder arrays
+        // These affect performance since we have to iterate through any and all empty indices every frame
+        static const int MAX_WINDOW_SIZE_X = 800;
+        static const int MAX_WINDOW_SIZE_Y = 600;
         static const int MAX_PIXEL_COUNT = MAX_WINDOW_SIZE_X * MAX_WINDOW_SIZE_Y;
 
     private:
+        // The actual width of the game window
         int trueWindowSizeX;
+        // The actual height of the game window
         int trueWindowSizeY;
 
+        // The number of active powders in the simulation
         int numPowders;
 
         /**
@@ -35,7 +39,7 @@ class Storage {
         /**
          * Returns a hashed value for the given powder
          * 
-         * Alternative to having the powder be inherently hashable because only this class stores powders in maps and
+         * Alternative to having the powder be inherently hashable because only this class cares about the hashing of powders
          * this class has an expectation that no powder will be in another powder's space (i.e. no breaking the laws of physics)
          */
         size_t hashPowder(powder_ptr powder);
@@ -46,6 +50,11 @@ class Storage {
         size_t hashPosition(int xPos, int yPos);
 
         /**
+         * Checks if the given position is within range/on the screen
+         */
+        bool isPositionInRange(int xPos, int yPos);
+
+        /**
          * List of all present powders
          */
         std::unique_ptr<std::array<powder_ptr, MAX_PIXEL_COUNT>> powders;
@@ -54,6 +63,12 @@ class Storage {
          * List of next frame's powders
          */
         std::unique_ptr<std::array<powder_ptr, MAX_PIXEL_COUNT>> futurePowders;
+
+        /**
+         * The number of frames that have occurred since the first frame
+         *    Needed for in/validating powders
+         */
+        int curFrameCount;
         
 
     public:
@@ -73,6 +88,9 @@ class Storage {
          */
         void endFrameHandling();
         
+        /**
+         * Returns the iterators to the beginning and end of the powders container respectively
+         */
         std::pair<powder_array::iterator, powder_array::iterator> getPowdersIterators();
 
         /**
@@ -112,6 +130,8 @@ class Storage {
         bool getPowderAtLocation(int xPos, int yPos, powder_ptr &retVal);
 
         int getNumPowders();
+
+        int getCurFrameNum();
 };
 
 #endif /* STORAGE_H */
