@@ -6,15 +6,15 @@
 #include "Powder.h"
 
 Powder::Fire::Fire(int curFrame, int xPos, int yPos) : 
-        Powder::Powder(curFrame, xPos, yPos, true, -.4f, glm::vec4(0.929f, 0.388f, 0.18f, 0.91f), PowderType::fire, 80) {
+        Powder::Powder(curFrame, xPos, yPos, 0, 0, true, -.4f, glm::vec4(0.929f, 0.388f, 0.18f, 0.91f), PowderType::fire, 80) {
+}
+
+Powder::Fire::Fire(int curFrame, int xPos, int yPos, int startingXVelocity, int startingYVelocity) : 
+        Powder::Powder(curFrame, xPos, yPos, startingXVelocity, startingYVelocity, true, -.4f, glm::vec4(0.929f, 0.388f, 0.18f, 0.91f), PowderType::fire, 80) {
 }
 
 Powder::Fire::~Fire() {}
 
 powder_ptr Powder::Fire::copyPowder() {
-    return(copyPowder(this->x, this->y));
-}
-
-powder_ptr Powder::Fire::copyPowder(int newXPos, int newYPos) {
-    return(std::make_shared<Fire>(this->frameLastChanged, newXPos, newYPos));
+    return(std::make_shared<Fire>(this->frameLastChanged, x, y, xVel, yVel));
 }

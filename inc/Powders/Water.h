@@ -10,6 +10,7 @@ namespace Powder {
 
         public:
             Water(int curFrame, int x, int y);
+            Water(int curFrame, int x, int y, int startingXVelocity, int startingYVelocity);
             ~Water();
 
             powder_ptr copyPowder();

@@ -10,6 +10,7 @@ namespace Powder {
 
         public:
             Wall(int curFrame, int x, int y);
+            Wall(int curFrame, int x, int y, int startingXVelocity, int startingYVelocity);
             ~Wall();
 
             powder_ptr copyPowder();

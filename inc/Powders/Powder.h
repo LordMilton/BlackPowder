@@ -22,7 +22,7 @@ namespace Powder
             };
 
         protected:
-            Powder(int curFrame, int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0, bool liquid = false);
+            Powder(int curFrame, int xPos, int yPos, int startingXVelocity, int startingYVelocity, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife = 0, bool liquid = false);
 
             /**
              * Table for translating the powder type into a name string
@@ -98,9 +98,21 @@ namespace Powder
              * "Combines" the velocities of this object with the velocities provided
              */
             void combineVelocities(std::pair<double,double> velocities);
+            /**
+             * Whether this powder is valid (was last updated) this frame
+             */
             bool validThisFrame(int curFrame);
+            /**
+             * Whether this powder was valid (was last updated) in the previous frame
+             */
             bool validLastFrame(int curFrame);
+            /**
+             * Get the stringified name of this powder
+             */
             std::string getName();
+            /**
+             * Get the enumerated type of this powder (far more efficient for comparisons)
+             */
             PowderType getPowderType();
 
             /**
@@ -129,9 +141,10 @@ namespace Powder
              */
             void shiftPowder(int newXPos, int newYPos, int curFrame);
 
+            /** 
+             * Creates another identical copy of this powder
+             */
             virtual std::shared_ptr<Powder> copyPowder() = 0;
-
-            virtual std::shared_ptr<Powder> copyPowder(int newXPos, int newYPos) = 0;
     };
 }
 

@@ -9,11 +9,11 @@
 
 std::string Powder::Powder::powderTypeNameList[] = {"Fire", "Sand", "Wall", "Water"};
 
-Powder::Powder::Powder(int curFrame, int xPos, int yPos, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife, bool liquid) :
+Powder::Powder::Powder(int curFrame, int xPos, int yPos, int startingXVelocity, int startingYVelocity, bool gravity, float density, glm::vec4 color, PowderType powderType, int halfLife, bool liquid) :
                     x(xPos),
                     y(yPos),
-                    xVel(0),
-                    yVel(0),
+                    xVel(startingXVelocity),
+                    yVel(startingYVelocity),
                     gravity(gravity),
                     density(density),
                     color(color),
@@ -161,9 +161,9 @@ bool Powder::Powder::validLastFrame(int curFrame) {
 void Powder::Powder::combineVelocities(std::pair<double,double> velocities) {
     if(gravity) {
         xVel = (xVel + velocities.first) / 2.0;
-        xVel = xVel * abs(density) * 2; // Multiply by 2 to keep powders moving a little quicker
+        xVel = xVel * abs(density);
         yVel = (yVel + velocities.second) / 2.0;
-        yVel = yVel * abs(density) * 2; // Multiply by 2 to keep powders moving a little quicker
+        yVel = yVel * abs(density);
     }
     else {
         xVel = 0;

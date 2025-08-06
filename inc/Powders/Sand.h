@@ -10,6 +10,7 @@ namespace Powder {
 
         public:
             Sand(int curFrame, int x, int y);
+            Sand(int curFrame, int x, int y, int startingXVelocity, int startingYVelocity);
             ~Sand();
 
             powder_ptr copyPowder();
