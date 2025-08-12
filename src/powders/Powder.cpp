@@ -59,14 +59,17 @@ bool Powder::Powder::advanceOneFrame(std::function<std::pair<int,int>(int,int,do
 
     // Update velocities
     if(gravity) {
-        const double GRAVITY = 1.0;
+        const double GRAVITY = 3.0;
         const double MAX_XWOBBLE = .1;
         double xWobble = ((rand() % 3) - 1) * MAX_XWOBBLE; //TODO change this negatively w/r/t density
+        int densityDirection = density == 0 ? 0 : density / abs(density);
+        int xVelDirection = xVel == 0 ? 0 : xVel / abs(xVel);
+        int xWobbleDirection = xWobble == 0 ? 0 : xWobble / abs(xWobble);
         if(!forceHorizontalMvmt) {
-            this->combineVelocities(std::make_pair(xWobble + xVel/2.0, GRAVITY * (density / abs(density))));
+            this->combineVelocities(std::make_pair(xWobble, GRAVITY * densityDirection));
         }
         else {
-            this->combineVelocities(std::make_pair((xWobble / MAX_XWOBBLE) + xVel / 2.0, yVel));
+            this->combineVelocities(std::make_pair(xWobble + (1.0/fmax(abs(xVel), .001)) * xWobbleDirection, yVel));
         }
     }
     else {
